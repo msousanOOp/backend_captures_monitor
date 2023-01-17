@@ -86,7 +86,8 @@ class API
         } catch( Exception $e)
         {
             echo "[ERROR] Curl Error (".$e->getMessage().")" . PHP_EOL;
-            exit(-1);
+            // exit(-1);
+            return false;
         }
     }
 
