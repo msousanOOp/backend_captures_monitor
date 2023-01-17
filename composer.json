@@ -2,7 +2,11 @@
     "name": "dbsnoop/monitor",
     "type": "project",
     "require": {
-        "sohris/events": "^0.2.4"
+        "sohris/events": "^0.2.4",
+        "guzzlehttp/guzzle": "^7.5",
+        "firebase/php-jwt": "^6.3",
+        "symfony/console": "^5.4",
+        "phpseclib/phpseclib": "~3.0"
     },
     "authors": [
         {
@@ -10,9 +14,13 @@
             "email": "rodri.merlucci@gmail.com"
         }
     ],
+    "scripts": {
+        "register": "php commands.php register"
+    },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "Helpers\\" : "helpers/"
         }
     }
 }

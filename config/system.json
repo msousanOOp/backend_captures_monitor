@@ -1,0 +1,7 @@
+{
+    "log_folder": "\/app\/monitor\/storage\/log",
+    "key": "",
+    "api_url": "",
+    "jwt_token": "",
+    "debug": true
+}
