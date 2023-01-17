@@ -2,27 +2,33 @@
 
 namespace App;
 
+use Sohris\Core\Logger;
 use Sohris\Core\Utils;
 
 class Connector
 {
     protected $configs;
     protected $statistics = [];
-
+    protected $invalidate_op = false;
     protected $connector_name = '';
     private $timer = 0;
     private $timers = [];
     private $logs = [];
     private $captures = [];
+    private $logger;
+    
 
     public function __construct(array $connect_setings = [])
     {
+        $this->logger = new Logger("Connector");
         $this->configs = $connect_setings;
     }
 
     protected function log($type, $level, $code, $message)
     {
+
         $this->logs[] = ["type" => $type, "level" => $level, "code" => $code, "message" => $message];
+        $this->logger->warning($message);
     }
 
     protected function reloadTime()

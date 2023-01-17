@@ -114,6 +114,7 @@ class Runner extends AbstractEvent
                     $result['results']['errors'] = $connection;
                     break;
             }
+
             API::sendResults($result);
         } catch (Exception $e) {
             var_dump($e->getMessage());

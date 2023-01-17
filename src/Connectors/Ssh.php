@@ -12,16 +12,16 @@ class Ssh extends \App\Connector
     /**
      * @var SSH2
      */
-    static $connector;
+    private $connector;
     public function __construct($config)
     {
-        $this->configs = $config;
+        parent::__construct($config);
         $this->connector_name = 'ssh';
-        
     }
     public function openConnection(): bool
     {
-        if (!self::$connector) {
+        if($this->connector) return true;
+        if (!$this->invalidate_op) {
             list("ssh_host_ip" => $host, "ssh_host_port" => $port, "ssh_user" => $user, "ssh_password" => $pass) = $this->configs;
             $this->startTime("connection_time_ssh");
             try {
@@ -31,21 +31,30 @@ class Ssh extends \App\Connector
                 if (!$conn->login($user, $key)) {
                     throw new \Exception($conn->getLastError());
                 }
-                self::$connector = $conn;
+                $this->connector = $conn;
                 $this->finishTime("connection_time_ssh");
                 return true;
             } catch (\Exception $e) {
-                $this->log("Connection - SSH", "Error", $e->getCode(),  str_replace("\\","",$e->getMessage()));
+                $this->log("Connection - SSH", "Error", $e->getCode(),  str_replace("\\", "", $e->getMessage()));
+                $this->invalidate_op = true;
                 return false;
             }
         }
-        return true;
+        return false;
+    }
+
+
+    public function isConnected(): bool
+    {
+        if ($this->connector)
+            return true;
+        return false;
     }
 
     public function closeConnection(): void
     {
-        if (self::$connector) {
-            self::$connector = null;
+        if ($this->connector) {
+            $this->connector = null;
         }
     }
 
@@ -53,13 +62,13 @@ class Ssh extends \App\Connector
     {
         $this->startTime("task_" . $task['task_id']);
         try {
-            $stm = self::$connector->exec($task['command']);
+            $stm = $this->connector->exec($task['command']);
             $this->finishTime("task_" . $task['task_id']);
         } catch (\Exception $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }
-        $this->addCapture("task_".$task['task_id'], $stm);
+        $this->addCapture("task_" . $task['task_id'], $stm);
         return true;
     }
 }

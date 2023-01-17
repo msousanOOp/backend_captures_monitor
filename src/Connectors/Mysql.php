@@ -10,18 +10,19 @@ class Mysql extends \App\Connector
     /**
      * @var \PDO
      */
-    static $connector;
+    private $connector;
     
     public function __construct($config)
     {
-        $this->configs = $config;
         $this->connector_name = 'mysql';
+        parent::__construct($config);
         
     }
     public function openConnection(): bool
     {   
-        
-        if (!self::$connector) {
+        if($this->connector) return true;
+
+        if (!$this->invalidate_op) {
             list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
             $this->startTime("connection_time_mysql");
             try {
@@ -29,21 +30,29 @@ class Mysql extends \App\Connector
                     PDO::ATTR_TIMEOUT => 5,
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ));
-                self::$connector = $pdo;
+                $this->connector = $pdo;
                 $this->finishTime("connection_time_mysql");
                 return true;
             } catch (\PDOException $e) {
+                $this->invalidate_op = true;
                 $this->log("Connection - MYSQL", "Error", $e->getCode(), $e->getMessage());
                 return false;
             }
         }
-        return true;
+        return false;
+    }
+    
+    public function isConnected() :bool
+    {
+        if($this->connector)
+            return true;
+        return false;
     }
 
     public function closeConnection(): void
     {
-        if (self::$connector) {
-            self::$connector = null;
+        if ($this->connector) {
+            $this->connector = null;
         }
     }
 
@@ -51,7 +60,7 @@ class Mysql extends \App\Connector
     {
         $this->startTime("task_".$task['task_id']);
         try {
-            $stm = self::$connector->query($task['command']);
+            $stm = $this->connector->query($task['command']);
             $this->finishTime("task_".$task['task_id']);
         } catch (\PDOException $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
