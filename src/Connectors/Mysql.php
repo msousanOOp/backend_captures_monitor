@@ -12,8 +12,9 @@ class Mysql extends \App\Connector
      */
     static $connector;
     
-    public function __construct()
+    public function __construct($config)
     {
+        $this->configs = $config;
         $this->connector_name = 'mysql';
         
     }
@@ -24,15 +25,17 @@ class Mysql extends \App\Connector
             list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
             $this->startTime("connection_time_mysql");
             try {
+                var_dump("mysql:host=$host;port=$port;dbname=mysql", $user, $pass);
                 $pdo = new \PDO("mysql:host=$host;port=$port;dbname=mysql", $user, $pass, array(
-                    PDO::ATTR_TIMEOUT => 15,
+                    PDO::ATTR_TIMEOUT => 5,
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ));
                 self::$connector = $pdo;
                 $this->finishTime("connection_time_mysql");
                 return true;
             } catch (\PDOException $e) {
-                $this->log("Connection - MYSQL", "Error", $e->getCode(), str_replace("\\","",$e->getMessage()));
+                var_dump($e->getMessage());
+                $this->log("Connection - MYSQL", "Error", $e->getCode(), $e->getMessage());
                 return false;
             }
         }

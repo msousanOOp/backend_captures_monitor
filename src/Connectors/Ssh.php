@@ -13,8 +13,9 @@ class Ssh extends \App\Connector
      * @var SSH2
      */
     static $connector;
-    public function __construct()
+    public function __construct($config)
     {
+        $this->configs = $config;
         $this->connector_name = 'ssh';
         
     }
