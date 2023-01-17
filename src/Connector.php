@@ -47,7 +47,7 @@ class Connector
     protected function addCapture($task, $capture)
     {
         $this->captures[$task] = [
-            'connector' => self::$connector_name,
+            'connector' => $this->connector_name,
             'result' => $capture
         ];
     }
