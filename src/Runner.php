@@ -30,7 +30,6 @@ class Runner extends AbstractEvent
         try {
             self::firstRun();
             if (!($tasks = API::getNextTasks()) || empty($tasks['tasks'])) {
-                echo "Not enogth to do" . PHP_EOL;
                 return;
             }
 
@@ -42,7 +41,6 @@ class Runner extends AbstractEvent
             switch ($tasks['type']) {
                 case "task":
                     $server_config = self::getConfigs($tasks['server_id'], $tasks['service_code']);
-                    var_dump($server_config);
                     $connectors = [
                         'mysql' => null,
                         'ssh' => null,
@@ -82,6 +80,7 @@ class Runner extends AbstractEvent
                             $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
                             $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
                             $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
+                            $connector->closeConnection();
                         }
                     };
                     $result['result'] = [

@@ -37,7 +37,6 @@ class API
     {
 
         self::configureAPI();
-        var_dump($uri);
         try {
             if (!empty($body))
                 $body = ['data' => JWT::encode($body, self::$key, "HS256")];

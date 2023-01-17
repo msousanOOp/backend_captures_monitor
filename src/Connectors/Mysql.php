@@ -25,7 +25,6 @@ class Mysql extends \App\Connector
             list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
             $this->startTime("connection_time_mysql");
             try {
-                var_dump("mysql:host=$host;port=$port;dbname=mysql", $user, $pass);
                 $pdo = new \PDO("mysql:host=$host;port=$port;dbname=mysql", $user, $pass, array(
                     PDO::ATTR_TIMEOUT => 5,
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
@@ -34,7 +33,6 @@ class Mysql extends \App\Connector
                 $this->finishTime("connection_time_mysql");
                 return true;
             } catch (\PDOException $e) {
-                var_dump($e->getMessage());
                 $this->log("Connection - MYSQL", "Error", $e->getCode(), $e->getMessage());
                 return false;
             }
