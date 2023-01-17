@@ -38,10 +38,10 @@ class Connector
     protected function finishTime(string $name)
     {
         if (array_key_exists($name, $this->timers)) {
-            $this->statistics[$name] = (Utils::microtimeFloat() * 1000) - $this->timers[$name];
+            $this->statistics[$name] = round((Utils::microtimeFloat() * 1000) - $this->timers[$name]);
             unset($this->timers[$name]);
         } else
-            $this->statistics[$name] = (Utils::microtimeFloat() * 1000) - $this->timer;
+            $this->statistics[$name] = round((Utils::microtimeFloat() * 1000) - $this->timer);
     }
 
     protected function addCapture($task, $capture)
