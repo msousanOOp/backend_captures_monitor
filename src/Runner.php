@@ -29,7 +29,7 @@ class Runner extends AbstractEvent
     {
         try {
             self::firstRun();
-            if (!($tasks = API::getNextTasks()) || empty($tasks['tasks'])) {
+            if (!($tasks = API::getNextTasks())) {
                 return;
             }
 
@@ -96,19 +96,23 @@ class Runner extends AbstractEvent
                     ];
                     break;
                 case "test_connection":
-                    $server_config = $tasks['configuration'];
                     $connector = null;
-                    switch ($server_config['connection']) {
+                    switch ($tasks['connection']) {
                         case 'mysql':
-                            $connector = new Mysql((array)$server_config);
+                            $connector = new Mysql((array)$tasks);
                             break;
                         case 'ssh':
-                            $connector = new Ssh((array)$server_config);
+                            $connector = new Ssh((array)$tasks);
                             break;
                         case 'odbc':
                             break;
                     }
                     $result['result']['status'] = 'success';
+                    if(!$connector)
+                    {
+                        $result['result']['status'] = 'failure';
+                        $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
+                    }
 
                     if(!$connector->openConnection())
                     {
