@@ -5,19 +5,8 @@ use Firebase\JWT\Key;
 use GuzzleHttp\Client;
 use Sohris\Core\Utils;
 
-include "vendor/autoload.php";
 
-
-function brand()
-{
-    echo "       _ _                ___   ___        
-    __| | |__  ___ _ __  / _ \ / _ \ _ __  
-   / _` | '_ \/ __| '_ \| | | | | | | '_ \ 
-  | (_| | |_) \__ \ | | | |_| | |_| | |_) |
-   \__,_|_.__/|___/_| |_|\___/ \___/| .__/ 
-                                    |_|         " . PHP_EOL;
-    echo '===================ColletorInstaller====================' . PHP_EOL;
-}
+include __DIR__."/../bootstrap.php";
 
 
 function get_input(string $entry = "", string $regex = "", string $tip = "")
@@ -122,7 +111,6 @@ function save_database_info()
     if (!empty($info['data'])) {
         $decoder = JWT::decode($info['data'], new Key($file['key'], "HS256"));
         Utils::checkFolder(__DIR__ . "/../storage/cache/" , "create");
-        var_dump($decoder);
         foreach ($decoder as $key => $server) {
             $code_key =  sha1($key);
             $encode = JWT::encode((array)$server, $file['key'], "HS256");
@@ -135,7 +123,6 @@ function save_database_info()
 
 function main()
 {
-    brand();
     //define API and Key access
     echo "Entry the dbsnOOp colletor api (e.q: http://api.dbsnoop.com):" . PHP_EOL;
     $api = get_api_url();

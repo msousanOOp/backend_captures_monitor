@@ -24,6 +24,11 @@ class Connector
         $this->configs = $connect_setings;
     }
 
+    public function setConfig(array $config)
+    {
+        $this->configs = $config;
+    }
+
     protected function log($type, $level, $code, $message)
     {
 

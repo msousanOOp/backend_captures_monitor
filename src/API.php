@@ -82,6 +82,7 @@ class API
                 return false;
             }
         } catch (ClientException $e) {
+            var_dump($e->getMessage());
             return false;
         } catch( Exception $e)
         {
@@ -110,5 +111,11 @@ class API
     {
         self::configureAPI();
         return self::doRequest('POST', "worker/get_server_config", ['server' => $server, 'service' => $service]);
+    }
+
+    public static function getTaskInfo($service, $task)
+    {
+        self::configureAPI();
+        return self::doRequest('POST', "worker/get_task_info", ['service' => $service, 'task' => $task]);
     }
 }

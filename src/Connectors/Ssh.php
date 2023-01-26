@@ -13,7 +13,7 @@ class Ssh extends \App\Connector
      * @var SSH2
      */
     private $connector;
-    public function __construct($config)
+    public function __construct($config = [])
     {
         parent::__construct($config);
         $this->connector_name = 'ssh';

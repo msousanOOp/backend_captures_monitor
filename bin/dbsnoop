@@ -1,0 +1,34 @@
+#! /bin/bash
+while getopts k:c:t:i:s: opts; do
+    case ${opts} in
+        c) CLEAR_VAL=${OPTARG} ;;
+        t) TEST_VAL=${OPTARG} ;;
+        i) INSTANCE_VAL=${OPTARG} ;;
+        s) SERVICE_VAL=${OPTARG} ;;
+        k) TASK_VAL=${OPTARG} ;;
+    esac
+done
+
+case $CLEAR_VAL in
+    cache)
+        echo "Clean Cache"
+        php /app/helpers/CleanCache.php
+    ;;
+    log)
+        echo "Clean Logs"
+        php /app/helpers/CleanLog.php
+    ;;
+esac
+
+
+case $TEST_VAL in
+    connection)
+        echo "Test Connection $SERVICE_VAL $INSTANCE_VAL"
+        php /app/helpers/TestConnection.php $SERVICE_VAL $INSTANCE_VAL 
+    ;;
+    task)
+        echo "Test Task $SERVICE_VAL $INSTANCE_VAL $TASK_VAL"
+        php /app/helpers/TestConnection.php $SERVICE_VAL $INSTANCE_VAL $TASK_VAL
+    ;;
+esac
+

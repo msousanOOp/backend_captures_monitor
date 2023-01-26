@@ -12,7 +12,7 @@ class Mysql extends \App\Connector
      */
     private $connector;
     
-    public function __construct($config)
+    public function __construct($config = [])
     {
         $this->connector_name = 'mysql';
         parent::__construct($config);
@@ -66,7 +66,7 @@ class Mysql extends \App\Connector
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }
-        $this->addCapture("task_".$task['task_id'], $stm->fetchAll(PDO::FETCH_NUM));
+        $this->addCapture("task_".$task['task_id'], $stm->fetchAll());
         return true;
     }
 }

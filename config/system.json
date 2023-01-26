@@ -1,7 +1,7 @@
 {
     "log_folder": "\/app\/monitor\/storage\/log",
-    "key": "",
-    "api_url": "",
-    "jwt_token": "",
+    "key": "6bc51f7fc2d8e2c09c120c9b66fec9fd01dcee4a",
+    "api_url": "http:\/\/ec2-44-210-244-73.compute-1.amazonaws.com\/",
+    "jwt_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRhIjoie1wiaWRcIjpcIjRcIixcImN1c3RvbWVyXCI6MzcsXCJrZXlcIjpcIjZiYzUxZjdmYzJkOGUyYzA5YzEyMGM5YjY2ZmVjOWZkMDFkY2VlNGFcIn0ifQ.b-W4M6WS4vIjnS7tr3y9LKCQOFuBOC34WE_tea_HLzM",
     "debug": true
 }

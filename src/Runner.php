@@ -8,7 +8,7 @@ use App\Connectors\Ssh;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Sohris\Core\Utils;
+use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Event\AbstractEvent;
 
@@ -40,7 +40,7 @@ class Runner extends AbstractEvent
             $ids = [];
             switch ($tasks['type']) {
                 case "task":
-                    $server_config = self::getConfigs($tasks['server_id'], $tasks['service_code']);
+                    $server_config = Utils::getConfigs($tasks['server_id'], $tasks['service_code']);
                     $connectors = [
                         'mysql' => null,
                         'ssh' => null,
@@ -96,9 +96,9 @@ class Runner extends AbstractEvent
                     ];
                     break;
                 case "test_connection":
-                    $server_config = self::getConfigs($tasks['server_id'], $tasks['service_code']);
+                    $server_config = $tasks['configuration'];
                     $connector = null;
-                    switch ($tasks['connection']) {
+                    switch ($server_config['connection']) {
                         case 'mysql':
                             $connector = new Mysql((array)$server_config);
                             break;
@@ -108,10 +108,13 @@ class Runner extends AbstractEvent
                         case 'odbc':
                             break;
                     }
-                    $connector->openConnection();
-                    $connection = $connector->getContent()['logs'];
-                    $result['results']['connection'] = !empty($connection);
-                    $result['results']['errors'] = $connection;
+                    $result['result']['status'] = 'success';
+
+                    if(!$connector->openConnection())
+                    {
+                        $result['result']['status'] = 'failure';
+                        $result['result']['log'] = array_pop($connector->getContent()['logs']);
+                    }
                     break;
             }
 
@@ -124,25 +127,8 @@ class Runner extends AbstractEvent
     private static function firstRun()
     {
         if (!self::$key) {
-            self::$key = Utils::getConfigFiles('system')['key'];
+            self::$key = CoreUtils::getConfigFiles('system')['key'];
         }
     }
 
-    private static function getConfigs($server, $service): array
-    {
-        $key = sha1($server . "_" . $service);
-        $path = __DIR__ . "/../storage/cache/";
-        if (file_exists($path . $key)) {
-
-            $content = file_get_contents($path . $key);
-            $decoder = JWT::decode($content, new Key(self::$key, "HS256"));
-            return (array) $decoder;
-        }
-
-        $external = (array)API::getServerConfig($server, $service);
-        Utils::checkFolder($path, 'create');
-        file_put_contents($path . $key, JWT::encode($external, self::$key, "HS256"));
-
-        return (array) $external;
-    }
 }
