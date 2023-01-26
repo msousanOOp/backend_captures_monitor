@@ -108,6 +108,7 @@ class Runner extends AbstractEvent
                             break;
                     }
                     $result['result']['status'] = 'success';
+                    $result['result']['hash'] = $tasks['hash'];
                     if(!$connector)
                     {
                         $result['result']['status'] = 'failure';
