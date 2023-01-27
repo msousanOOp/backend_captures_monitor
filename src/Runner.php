@@ -127,7 +127,7 @@ class Runner extends AbstractEvent
                         {
                             $connector->process(["task_id" => time(), "command" => $task]);
                         }
-                        $result['result'] = $connector->getContent();
+                        $result['result']['results'] = $connector->getContent();
                     }
                     break;
             }
