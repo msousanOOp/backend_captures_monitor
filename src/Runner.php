@@ -23,30 +23,30 @@ class Runner extends AbstractEvent
 {
     private static $log;
     private static $key;
-
+    private static $tasks;
 
     public static function run()
     {
         try {
             self::firstRun();
-            if (!($tasks = API::getNextTasks())) {
+            if (!(self::$tasks = API::getNextTasks())) {
                 return;
             }
 
             $result = [
-                'type' => $tasks['type'],
+                'type' => self::$tasks['type'],
                 'result' => []
             ];
             $ids = [];
-            switch ($tasks['type']) {
+            switch (self::$tasks['type']) {
                 case "task":
-                    $server_config = Utils::getConfigs($tasks['server_id'], $tasks['service_code']);
+                    $server_config = Utils::getConfigs(self::$tasks['server_id'], self::$tasks['service_code']);
                     $connectors = [
                         'mysql' => null,
                         'ssh' => null,
                         'odbc' => null
                     ];
-                    foreach ($tasks['tasks'] as $task) {
+                    foreach (self::$tasks['tasks'] as $task) {
                         $task = (array) $task;
                         $ids[] = $task['task_id'];
                         switch ($task['connection']) {
@@ -86,10 +86,10 @@ class Runner extends AbstractEvent
                     $result['result'] = [
                         "timestamp" => time(),
                         "tasks_id" => $ids,
-                        "customer_id" => $tasks['customer_id'],
-                        "server_id" => $tasks['server_id'],
-                        "handshake_id" => $tasks['handshake_id'],
-                        "service" => $tasks['service_code'],
+                        "customer_id" => self::$tasks['customer_id'],
+                        "server_id" => self::$tasks['server_id'],
+                        "handshake_id" => self::$tasks['handshake_id'],
+                        "service" => self::$tasks['service_code'],
                         "captures" => $pre_process_tasks['captures'],
                         "timers" => $pre_process_tasks['timers'],
                         "logs" => $pre_process_tasks['logs'],
@@ -97,18 +97,18 @@ class Runner extends AbstractEvent
                     break;
                 case "test_connection":
                     $connector = null;
-                    switch ($tasks['connection']) {
+                    switch (self::$tasks['connection']) {
                         case 'mysql':
-                            $connector = new Mysql((array)$tasks);
+                            $connector = new Mysql((array)self::$tasks);
                             break;
                         case 'ssh':
-                            $connector = new Ssh((array)$tasks);
+                            $connector = new Ssh((array)self::$tasks);
                             break;
                         case 'odbc':
                             break;
                     }
                     $result['result']['status'] = 'success';
-                    $result['result']['hash'] = $tasks['hash'];
+                    $result['result']['hash'] = self::$tasks['hash'];
                     if(!$connector)
                     {
                         $result['result']['status'] = 'failure';
@@ -121,9 +121,9 @@ class Runner extends AbstractEvent
                         $result['result']['log'] = array_pop($connector->getContent()['logs']);
                         break;
                     }
-                    if(!empty($tasks['tasks']))
+                    if(!empty(self::$tasks['tasks']))
                     {
-                        foreach($tasks['tasks'] as $task)
+                        foreach(self::$tasks['tasks'] as $task)
                         {
                             $connector->process(["task_id" => time(), "command" => $task]);
                         }
@@ -131,8 +131,9 @@ class Runner extends AbstractEvent
                     }
                     break;
             }
-
+            unset($connector);
             API::sendResults($result);
+            unset($result);
         } catch (Exception $e) {
             var_dump($e->getMessage());
         }
