@@ -2,6 +2,7 @@
 
 use App\API;
 use App\Connectors\Mysql;
+use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
 use App\Utils;
 use Symfony\Component\Console\Helper\Table;
@@ -14,6 +15,9 @@ function get_connector($service)
     switch ($service) {
         case "mysql":
             $connector = new Mysql();
+            break;
+        case "postgresql":
+            $connector = new PostgreSql();
             break;
         case "ssh":
             $connector = new Ssh();
@@ -73,7 +77,7 @@ function main($argv)
             foreach ($result['captures'] as $capture) {
                 $r = $capture['result'];
                 if (!is_array($r)) {
-                    $r = [explode("|",$r)];
+                    $r = [explode("|", $r)];
                 }
                 $header = array_keys($r[0]);
                 $table = new Table($output);

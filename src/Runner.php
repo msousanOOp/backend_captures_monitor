@@ -4,6 +4,7 @@ namespace App;
 
 use App\API;
 use App\Connectors\Mysql;
+use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
 use Exception;
 use Firebase\JWT\JWT;
@@ -43,6 +44,7 @@ class Runner extends AbstractEvent
                     $server_config = Utils::getConfigs(self::$tasks['server_id'], self::$tasks['service_code']);
                     $connectors = [
                         'mysql' => null,
+                        'postgresql' => null,
                         'ssh' => null,
                         'odbc' => null
                     ];
@@ -56,6 +58,13 @@ class Runner extends AbstractEvent
                                 if (!$connectors['mysql']->openConnection())
                                     break;
                                 $connectors['mysql']->process($task);
+                                break;
+                            case 'postgresql':
+                                if (!$connectors['postgresql'])
+                                    $connectors['postgresql'] = new PostgreSql((array)$server_config);
+                                if (!$connectors['postgresql']->openConnection())
+                                    break;
+                                $connectors['postgresql']->process($task);
                                 break;
                             case 'ssh':
                                 if (!$connectors['ssh'])
@@ -101,6 +110,9 @@ class Runner extends AbstractEvent
                         case 'mysql':
                             $connector = new Mysql((array)self::$tasks);
                             break;
+                        case 'postgresql':
+                            $connector = new Mysql((array)self::$tasks);
+                            break;
                         case 'ssh':
                             $connector = new Ssh((array)self::$tasks);
                             break;
@@ -109,22 +121,18 @@ class Runner extends AbstractEvent
                     }
                     $result['result']['status'] = 'success';
                     $result['result']['hash'] = self::$tasks['hash'];
-                    if(!$connector)
-                    {
+                    if (!$connector) {
                         $result['result']['status'] = 'failure';
                         $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
                     }
 
-                    if(!$connector->openConnection())
-                    {
+                    if (!$connector->openConnection()) {
                         $result['result']['status'] = 'failure';
                         $result['result']['log'] = array_pop($connector->getContent()['logs']);
                         break;
                     }
-                    if(!empty(self::$tasks['tasks']))
-                    {
-                        foreach(self::$tasks['tasks'] as $task)
-                        {
+                    if (!empty(self::$tasks['tasks'])) {
+                        foreach (self::$tasks['tasks'] as $task) {
                             $connector->process(["task_id" => time(), "command" => $task]);
                         }
                         $result['result']['results'] = $connector->getContent();
@@ -145,5 +153,4 @@ class Runner extends AbstractEvent
             self::$key = CoreUtils::getConfigFiles('system')['key'];
         }
     }
-
 }
