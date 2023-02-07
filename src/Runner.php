@@ -111,7 +111,7 @@ class Runner extends AbstractEvent
                             $connector = new Mysql((array)self::$tasks);
                             break;
                         case 'postgresql':
-                            $connector = new Mysql((array)self::$tasks);
+                            $connector = new PostgreSql((array)self::$tasks);
                             break;
                         case 'ssh':
                             $connector = new Ssh((array)self::$tasks);
