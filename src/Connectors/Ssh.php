@@ -13,6 +13,9 @@ class Ssh extends \App\Connector
      * @var SSH2
      */
     private $connector;
+    private $valid_key = '';
+    private $connect = false;
+    static $connections = [];
     public function __construct($config = [])
     {
         parent::__construct($config);
@@ -20,18 +23,24 @@ class Ssh extends \App\Connector
     }
     public function openConnection(): bool
     {
-        if($this->connector) return true;
+        if($this->connect) return true;
         if (!$this->invalidate_op) {
             list("ssh_host_ip" => $host, "ssh_host_port" => $port, "ssh_user" => $user, "ssh_password" => $pass) = $this->configs;
             $this->startTime("connection_time_ssh");
-            try {
-
-                $key = PublicKeyLoader::load($pass);
-                $conn = new SSH2($host, $port);
-                if (!$conn->login($user, $key)) {
-                    throw new \Exception($conn->getLastError());
+            try{
+                $this->valid_key = sha1($host . $port . $user . $pass);
+                if(!array_key_exists($this->valid_key, self::$connections))
+                {
+                    self::$connections[$this->valid_key] = new SSH2($host, $port);
                 }
-                $this->connector = $conn;
+                
+                $key = PublicKeyLoader::load($pass);
+               
+                if (!self::$connections[$this->valid_key]->login($user, $key)) {
+                    unset(self::$connections[$this->valid_key]);
+                    throw new \Exception(self::$connections[$this->valid_key]->getLastError());
+                }
+                $this->connect = true;
                 $this->finishTime("connection_time_ssh");
                 return true;
             } catch (\Exception $e) {
@@ -46,15 +55,15 @@ class Ssh extends \App\Connector
 
     public function isConnected(): bool
     {
-        if ($this->connector)
+        if (self::$connections[$this->valid_key])
             return true;
         return false;
     }
 
     public function closeConnection(): void
     {
-        if ($this->connector) {
-            $this->connector = null;
+        if (self::$connections[$this->valid_key]) {
+            self::$connections[$this->valid_key]->disconnect();
         }
     }
 
@@ -62,7 +71,7 @@ class Ssh extends \App\Connector
     {
         $this->startTime("task_" . $task['task_id']);
         try {
-            $stm = $this->connector->exec($task['command']);
+            $stm = self::$connections[$this->valid_key]->exec($task['command']);
             $this->finishTime("task_" . $task['task_id']);
         } catch (\Exception $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
