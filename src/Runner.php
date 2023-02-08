@@ -22,33 +22,31 @@ use Sohris\Event\Event\AbstractEvent;
  */
 class Runner extends AbstractEvent
 {
-    private static $log;
     private static $key;
-    private static $tasks;
 
     public static function run()
     {
         try {
             self::firstRun();
-            if (!(self::$tasks = API::getNextTasks())) {
+            if (!($tasks = API::getNextTasks())) {
                 return;
             }
 
             $result = [
-                'type' => self::$tasks['type'],
+                'type' => $tasks['type'],
                 'result' => []
             ];
             $ids = [];
-            switch (self::$tasks['type']) {
+            switch ($tasks['type']) {
                 case "task":
-                    $server_config = Utils::getConfigs(self::$tasks['server_id'], self::$tasks['service_code']);
+                    $server_config = Utils::getConfigs($tasks['server_id'], $tasks['service_code']);
                     $connectors = [
                         'mysql' => null,
                         'postgresql' => null,
                         'ssh' => null,
                         'odbc' => null
                     ];
-                    foreach (self::$tasks['tasks'] as $task) {
+                    foreach ($tasks['tasks'] as $task) {
                         $task = (array) $task;
                         $ids[] = $task['task_id'];
                         switch ($task['connection']) {
@@ -95,10 +93,10 @@ class Runner extends AbstractEvent
                     $result['result'] = [
                         "timestamp" => time(),
                         "tasks_id" => $ids,
-                        "customer_id" => self::$tasks['customer_id'],
-                        "server_id" => self::$tasks['server_id'],
-                        "handshake_id" => self::$tasks['handshake_id'],
-                        "service" => self::$tasks['service_code'],
+                        "customer_id" => $tasks['customer_id'],
+                        "server_id" => $tasks['server_id'],
+                        "handshake_id" => $tasks['handshake_id'],
+                        "service" => $tasks['service_code'],
                         "captures" => $pre_process_tasks['captures'],
                         "timers" => $pre_process_tasks['timers'],
                         "logs" => $pre_process_tasks['logs'],
@@ -106,21 +104,21 @@ class Runner extends AbstractEvent
                     break;
                 case "test_connection":
                     $connector = null;
-                    switch (self::$tasks['connection']) {
+                    switch ($tasks['connection']) {
                         case 'mysql':
-                            $connector = new Mysql((array)self::$tasks);
+                            $connector = new Mysql((array)$tasks);
                             break;
                         case 'postgresql':
-                            $connector = new PostgreSql((array)self::$tasks);
+                            $connector = new PostgreSql((array)$tasks);
                             break;
                         case 'ssh':
-                            $connector = new Ssh((array)self::$tasks);
+                            $connector = new Ssh((array)$tasks);
                             break;
                         case 'odbc':
                             break;
                     }
                     $result['result']['status'] = 'success';
-                    $result['result']['hash'] = self::$tasks['hash'];
+                    $result['result']['hash'] = $tasks['hash'];
                     if (!$connector) {
                         $result['result']['status'] = 'failure';
                         $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
@@ -131,8 +129,8 @@ class Runner extends AbstractEvent
                         $result['result']['log'] = array_pop($connector->getContent()['logs']);
                         break;
                     }
-                    if (!empty(self::$tasks['tasks'])) {
-                        foreach (self::$tasks['tasks'] as $task) {
+                    if (!empty($tasks['tasks'])) {
+                        foreach ($tasks['tasks'] as $task) {
                             $connector->process(["task_id" => time(), "command" => $task]);
                         }
                         $result['result']['results'] = $connector->getContent();
