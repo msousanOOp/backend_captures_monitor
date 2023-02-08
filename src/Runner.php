@@ -37,105 +37,98 @@ class Runner extends AbstractEvent
                 'result' => []
             ];
             $ids = [];
-            switch ($tasks['type']) {
-                case "task":
-                    $server_config = Utils::getConfigs($tasks['server_id'], $tasks['service_code']);
-                    $connectors = [
-                        'mysql' => null,
-                        'postgresql' => null,
-                        'ssh' => null,
-                        'odbc' => null
-                    ];
-                    foreach ($tasks['tasks'] as $task) {
-                        $task = (array) $task;
-                        $ids[] = $task['task_id'];
-                        switch ($task['connection']) {
-                            case 'mysql':
-                                if (!$connectors['mysql'])
-                                    $connectors['mysql'] = new Mysql((array)$server_config);
-                                if (!$connectors['mysql']->openConnection())
-                                    break;
-                                $connectors['mysql']->process($task);
-                                break;
-                            case 'postgresql':
-                                if (!$connectors['postgresql'])
-                                    $connectors['postgresql'] = new PostgreSql((array)$server_config);
-                                if (!$connectors['postgresql']->openConnection())
-                                    break;
-                                $connectors['postgresql']->process($task);
-                                break;
-                            case 'ssh':
-                                if (!$connectors['ssh'])
-                                    $connectors['ssh'] = new Ssh((array)$server_config);
-                                if (!$connectors['ssh']->openConnection())
-                                    break;
-                                $connectors['ssh']->process($task);
-                                break;
-                            case 'odbc':
-                                break;
-                        }
+            if ($tasks['type'] == 'task') {
+                $server_config = Utils::getConfigs($tasks['server_id'], $tasks['service_code']);
+                $connectors = [
+                    'mysql' => null,
+                    'postgresql' => null,
+                    'ssh' => null,
+                    'odbc' => null
+                ];
+                foreach ($tasks['tasks'] as $task) {
+                    $task = (array) $task;
+                    $ids[] = $task['task_id'];
+                    if ($task['connection'] == 'mysql') {
+                        if (!$connectors['mysql'])
+                            $connectors['mysql'] = new Mysql((array)$server_config);
+                        if (!$connectors['mysql']->openConnection())
+                            continue;
+                        $connectors['mysql']->process($task);
+                    } elseif ($task['connection'] == 'postgresql') {
+                        if (!$connectors['postgresql'])
+                            $connectors['postgresql'] = new PostgreSql((array)$server_config);
+                        if (!$connectors['postgresql']->openConnection())
+                            continue;
+                        $connectors['postgresql']->process($task);
+                    } elseif ($task['connection'] == 'ssh') {
+                        if (!$connectors['ssh'])
+                            $connectors['ssh'] = new Ssh((array)$server_config);
+                        if (!$connectors['ssh']->openConnection())
+                            continue;
+                        $connectors['ssh']->process($task);
+                    } elseif ($task['connection'] == 'odbc') {
+                        continue;
+                    } else {
+                        continue;
                     }
+                }
 
-                    $pre_process_tasks = [
-                        "captures" => [],
-                        "timers" => [],
-                        "logs" => []
-                    ];
-                    foreach ($connectors as $connector) {
-                        if ($connector) {
-                            $content = $connector->getContent();
-                            $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
-                            $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
-                            $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
-                            $connector->closeConnection();
-                        }
-                    };
-                    $result['result'] = [
-                        "timestamp" => time(),
-                        "tasks_id" => $ids,
-                        "customer_id" => $tasks['customer_id'],
-                        "server_id" => $tasks['server_id'],
-                        "handshake_id" => $tasks['handshake_id'],
-                        "service" => $tasks['service_code'],
-                        "captures" => $pre_process_tasks['captures'],
-                        "timers" => $pre_process_tasks['timers'],
-                        "logs" => $pre_process_tasks['logs'],
-                    ];
-                    break;
-                case "test_connection":
-                    $connector = null;
-                    switch ($tasks['connection']) {
-                        case 'mysql':
-                            $connector = new Mysql((array)$tasks);
-                            break;
-                        case 'postgresql':
-                            $connector = new PostgreSql((array)$tasks);
-                            break;
-                        case 'ssh':
-                            $connector = new Ssh((array)$tasks);
-                            break;
-                        case 'odbc':
-                            break;
+                $pre_process_tasks = [
+                    "captures" => [],
+                    "timers" => [],
+                    "logs" => []
+                ];
+                foreach ($connectors as $connector) {
+                    if ($connector) {
+                        $content = $connector->getContent();
+                        $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
+                        $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
+                        $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
+                        $connector->closeConnection();
                     }
-                    $result['result']['status'] = 'success';
-                    $result['result']['hash'] = $tasks['hash'];
-                    if (!$connector) {
-                        $result['result']['status'] = 'failure';
-                        $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
-                    }
-
-                    if (!$connector->openConnection()) {
-                        $result['result']['status'] = 'failure';
-                        $result['result']['log'] = array_pop($connector->getContent()['logs']);
+                };
+                $result['result'] = [
+                    "timestamp" => time(),
+                    "tasks_id" => $ids,
+                    "customer_id" => $tasks['customer_id'],
+                    "server_id" => $tasks['server_id'],
+                    "handshake_id" => $tasks['handshake_id'],
+                    "service" => $tasks['service_code'],
+                    "captures" => $pre_process_tasks['captures'],
+                    "timers" => $pre_process_tasks['timers'],
+                    "logs" => $pre_process_tasks['logs'],
+                ];
+            } elseif ($tasks['type'] == "test_connection") {
+                $connector = null;
+                switch ($tasks['connection']) {
+                    case 'mysql':
+                        $connector = new Mysql((array)$tasks);
                         break;
+                    case 'postgresql':
+                        $connector = new PostgreSql((array)$tasks);
+                        break;
+                    case 'ssh':
+                        $connector = new Ssh((array)$tasks);
+                        break;
+                    case 'odbc':
+                        break;
+                }
+                $result['result']['status'] = 'success';
+                $result['result']['hash'] = $tasks['hash'];
+                if (!$connector) {
+                    $result['result']['status'] = 'failure';
+                    $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
+                }
+
+                if (!$connector->openConnection()) {
+                    $result['result']['status'] = 'failure';
+                    $result['result']['log'] = array_pop($connector->getContent()['logs']);
+                } elseif (!empty($tasks['tasks'])) {
+                    foreach ($tasks['tasks'] as $task) {
+                        $connector->process(["task_id" => time(), "command" => $task]);
                     }
-                    if (!empty($tasks['tasks'])) {
-                        foreach ($tasks['tasks'] as $task) {
-                            $connector->process(["task_id" => time(), "command" => $task]);
-                        }
-                        $result['result']['results'] = $connector->getContent();
-                    }
-                    break;
+                    $result['result']['results'] = $connector->getContent();
+                }
             }
             unset($connector);
             API::sendResults($result);
