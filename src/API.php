@@ -118,4 +118,10 @@ class API
         self::configureAPI();
         return self::doRequest('POST', "worker/get_task_info", ['service' => $service, 'task' => $task]);
     }
+
+    public static function sendStats($stats = [])
+    {
+        self::configureAPI();
+        return self::doRequest('POST', "worker/save_statistics", $stats);
+    }
 }

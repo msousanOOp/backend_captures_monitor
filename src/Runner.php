@@ -9,6 +9,7 @@ use App\Connectors\Ssh;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Sohris\Core\Server;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Event\AbstractEvent;
@@ -23,15 +24,25 @@ use Sohris\Event\Event\AbstractEvent;
 class Runner extends AbstractEvent
 {
     private static $key;
+    private static $total_tasks = 0;
+    private static $total_tests = 0;
+    private static $total_dequeue = 0;
+    private static $time_task = 0;
+    private static $time_process = 0;
 
     public static function run()
     {
         try {
             self::firstRun();
+            $task_start = CoreUtils::microtimeFloat();
             if (!($tasks = API::getNextTasks())) {
                 return;
             }
+            $task_end = CoreUtils::microtimeFloat();
+            self::$total_dequeue++;
+            self::$time_task+=$task_end-$task_start;
 
+            $process_start = CoreUtils::microtimeFloat();
             $result = [
                 'type' => $tasks['type'],
                 'result' => []
@@ -46,6 +57,7 @@ class Runner extends AbstractEvent
                     'odbc' => null
                 ];
                 foreach ($tasks['tasks'] as $task) {
+                    self::$total_tasks++;
                     $task = (array) $task;
                     $ids[] = $task['task_id'];
                     if ($task['connection'] == 'mysql') {
@@ -99,6 +111,7 @@ class Runner extends AbstractEvent
                     "logs" => $pre_process_tasks['logs'],
                 ];
             } elseif ($tasks['type'] == "test_connection") {
+                self::$total_tests++;
                 $connector = null;
                 switch ($tasks['connection']) {
                     case 'mysql':
@@ -133,6 +146,9 @@ class Runner extends AbstractEvent
             unset($connector);
             API::sendResults($result);
             unset($result);
+            $process_end = CoreUtils::microtimeFloat();
+            self::$time_process = $process_end - $process_start;
+            self::saveStatistcs();
         } catch (Exception $e) {
             var_dump($e->getMessage());
         }
@@ -143,5 +159,17 @@ class Runner extends AbstractEvent
         if (!self::$key) {
             self::$key = CoreUtils::getConfigFiles('system')['key'];
         }
+    }
+
+    private static function saveStatistcs()
+    {
+        $stats = [
+            'tasks' => self::$total_tasks,
+            'tests' => self::$total_tests,
+            'time_process' => round(self::$time_process/1000,0),
+            'time_task' => round(self::$time_task/1000,0),
+            'total' => self::$total_dequeue
+        ];
+        file_put_contents(Server::getRootDir(). "/stats", json_encode($stats));
     }
 }
