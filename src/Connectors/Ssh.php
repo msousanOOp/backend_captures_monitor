@@ -16,6 +16,7 @@ class Ssh extends \App\Connector
     private $valid_key = '';
     private $connect = false;
     static $connections = [];
+    static $keys = [];
     public function __construct($config = [])
     {
         parent::__construct($config);
@@ -32,11 +33,11 @@ class Ssh extends \App\Connector
                 if(!array_key_exists($this->valid_key, self::$connections))
                 {
                     self::$connections[$this->valid_key] = new SSH2($host, $port);
+                    self::$keys[$this->valid_key] = PublicKeyLoader::load($pass);
                 }
                 
-                $key = PublicKeyLoader::load($pass);
                
-                if (!self::$connections[$this->valid_key]->login($user, $key)) {
+                if (!self::$connections[$this->valid_key]->login($user, self::$keys[$this->valid_key])) {
                     unset(self::$connections[$this->valid_key]);
                     throw new \Exception(self::$connections[$this->valid_key]->getLastError());
                 }
