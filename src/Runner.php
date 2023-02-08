@@ -40,7 +40,7 @@ class Runner extends AbstractEvent
             }
             $task_end = CoreUtils::microtimeFloat();
             self::$total_dequeue++;
-            self::$time_task+=$task_end-$task_start;
+            self::$time_task+=($task_end-$task_start);
 
             $process_start = CoreUtils::microtimeFloat();
             $result = [
@@ -147,7 +147,7 @@ class Runner extends AbstractEvent
             API::sendResults($result);
             unset($result);
             $process_end = CoreUtils::microtimeFloat();
-            self::$time_process = $process_end - $process_start;
+            self::$time_process += ($process_end - $process_start);
             self::saveStatistcs();
         } catch (Exception $e) {
             var_dump($e->getMessage());
