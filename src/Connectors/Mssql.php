@@ -14,7 +14,7 @@ class Mssql extends \App\Connector
     
     public function __construct($config = [])
     {
-        $this->connector_name = 'postgresql';
+        $this->connector_name = 'mssql';
         parent::__construct($config);
         
     }
@@ -26,7 +26,7 @@ class Mssql extends \App\Connector
             list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
             $this->startTime("connection_time_mssql");
             try {
-                $pdo = new \PDO("mssql:host=$host;port=$port", $user, $pass, array(
+                $pdo = new \PDO("sqlsrv:Server=$host:$port", $user, $pass, array(
                     PDO::ATTR_TIMEOUT => 5,
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ));
