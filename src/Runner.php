@@ -146,17 +146,16 @@ class Runner extends AbstractEvent
                     if (!$connector) {
                         $result['result']['status'] = 'failure';
                         $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
-
-                        if (!$connector->openConnection()) {
-                            $result['result']['status'] = 'failure';
-                            $result['result']['log'] = array_pop($connector->getContent()['logs']);
-                        } elseif (!empty($tasks['tasks'])) {
-                            foreach ($tasks['tasks'] as $task) {
-                                $connector->process(["task_id" => time(), "command" => $task]);
-                            }
-                            $result['result']['results'] = $connector->getContent();
-                        }
                         break;
+                    }
+                    if (!$connector->openConnection()) {
+                        $result['result']['status'] = 'failure';
+                        $result['result']['log'] = array_pop($connector->getContent()['logs']);
+                    } elseif (!empty($tasks['tasks'])) {
+                        foreach ($tasks['tasks'] as $task) {
+                            $connector->process(["task_id" => time(), "command" => $task]);
+                        }
+                        $result['result']['results'] = $connector->getContent();
                     }
                     break;
             }

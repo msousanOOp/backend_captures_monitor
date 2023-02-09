@@ -26,8 +26,6 @@ class Mssql extends \App\Connector
             list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
             $this->startTime("connection_time_mssql");
             try {
-$pdo = new PDO("sqlsrv:Server=scarif.hti.com.br,25256;TrustServerCertificate=true", 'sa', 'Troca@123');
-
                 $pdo = new \PDO("sqlsrv:Server=$host,$port;TrustServerCertificate=true", $user, $pass, array(
                     PDO::ATTR_TIMEOUT => 5,
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
