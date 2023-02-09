@@ -36,12 +36,12 @@ class Ssh extends \App\Connector
                     self::$keys[$this->valid_key] = PublicKeyLoader::load($pass);
                 }
                 
-                if(!self::$connections[$this->valid_key]->isConnected())
-                {
-                    self::$connections[$this->valid_key]->reconnect();
-                }
+                // if(!self::$connections[$this->valid_key]->isConnected())
+                // {
+                //     self::$connections[$this->valid_key]->reconnect();
+                // }
                
-                if (!self::$connections[$this->valid_key]->login($user, self::$keys[$this->valid_key])) {
+                if (!self::$connections[$this->valid_key]->ping() && !self::$connections[$this->valid_key]->login($user, self::$keys[$this->valid_key])) {
                     unset(self::$connections[$this->valid_key]);
                     throw new \Exception(self::$connections[$this->valid_key]->getLastError());
                 }
