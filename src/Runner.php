@@ -113,6 +113,7 @@ class Runner extends AbstractEvent
                         "timers" => $pre_process_tasks['timers'],
                         "logs" => $pre_process_tasks['logs'],
                     ];
+                    break;
                 case "test_connection":
                     $connector = null;
                     switch ($tasks['connection']) {
@@ -145,6 +146,7 @@ class Runner extends AbstractEvent
                         }
                         break;
                     }
+                    break;
             }
             API::sendResults($result);
             unset($result);
