@@ -68,7 +68,7 @@ class Ssh extends \App\Connector
     public function closeConnection(): void
     {
         if (self::$connections[$this->valid_key]) {
-            self::$connections[$this->valid_key]->disconnect();
+            //self::$connections[$this->valid_key]->disconnect();
         }
     }
 
