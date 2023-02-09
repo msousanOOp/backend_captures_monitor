@@ -3,6 +3,7 @@
 namespace App;
 
 use App\API;
+use App\Connectors\Mssql;
 use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
@@ -69,6 +70,13 @@ class Runner extends AbstractEvent
                                     break;
                                 $connectors['mysql']->process($task);
                                 break;
+                                case 'mssql':
+                                    if (!$connectors['mssql'])
+                                        $connectors['mssql'] = new Mssql((array)$server_config);
+                                    if (!$connectors['mssql']->openConnection())
+                                        break;
+                                    $connectors['mssql']->process($task);
+                                    break;
                             case 'postgresql':
                                 if (!$connectors['postgresql'])
                                     $connectors['postgresql'] = new PostgreSql((array)$server_config);
@@ -124,6 +132,9 @@ class Runner extends AbstractEvent
                         case 'postgresql':
                             $connector = new PostgreSql((array)$tasks);
                             break;
+                        case 'mssql':
+                            $connector = new Mssql((array)$tasks);
+                            break;
                         case 'ssh':
                             $connector = new Ssh((array)$tasks);
                             break;
@@ -171,8 +182,8 @@ class Runner extends AbstractEvent
         $stats = [
             'tasks' => self::$total_tasks,
             'tests' => self::$total_tests,
-            'time_process' => round(self::$time_process,0),
-            'time_task' => round(self::$time_task,0),
+            'time_process' => round(self::$time_process, 0),
+            'time_task' => round(self::$time_task, 0),
             'total' => self::$total_dequeue
         ];
         file_put_contents(Server::getRootDir() . "/stats", json_encode($stats));

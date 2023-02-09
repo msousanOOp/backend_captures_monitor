@@ -14,7 +14,6 @@ use Sohris\Event\Event\AbstractEvent;
  *  type="Interval",
  *  time="60"
  * )
- * 
  */
 class HealthCheck extends AbstractEvent
 {
