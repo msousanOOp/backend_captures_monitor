@@ -171,8 +171,8 @@ class Runner extends AbstractEvent
         $stats = [
             'tasks' => self::$total_tasks,
             'tests' => self::$total_tests,
-            'time_process' => self::$time_process,
-            'time_task' => self::$time_task,
+            'time_process' => round(self::$time_process,0),
+            'time_task' => round(self::$time_task,0),
             'total' => self::$total_dequeue
         ];
         file_put_contents(Server::getRootDir() . "/stats", json_encode($stats));
