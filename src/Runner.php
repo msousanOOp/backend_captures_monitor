@@ -56,7 +56,7 @@ class Runner extends AbstractEvent
                         'mysql' => null,
                         'postgresql' => null,
                         'ssh' => null,
-                        'odbc' => null
+                        'mssql' => null
                     ];
                     foreach ($tasks['tasks'] as $task) {
                         self::$total_tasks++;
@@ -70,13 +70,13 @@ class Runner extends AbstractEvent
                                     break;
                                 $connectors['mysql']->process($task);
                                 break;
-                                case 'mssql':
-                                    if (!$connectors['mssql'])
-                                        $connectors['mssql'] = new Mssql((array)$server_config);
-                                    if (!$connectors['mssql']->openConnection())
-                                        break;
-                                    $connectors['mssql']->process($task);
+                            case 'mssql':
+                                if (!$connectors['mssql'])
+                                    $connectors['mssql'] = new Mssql((array)$server_config);
+                                if (!$connectors['mssql']->openConnection())
                                     break;
+                                $connectors['mssql']->process($task);
+                                break;
                             case 'postgresql':
                                 if (!$connectors['postgresql'])
                                     $connectors['postgresql'] = new PostgreSql((array)$server_config);
@@ -90,8 +90,6 @@ class Runner extends AbstractEvent
                                 if (!$connectors['ssh']->openConnection())
                                     break;
                                 $connectors['ssh']->process($task);
-                                break;
-                            case 'odbc':
                                 break;
                         }
                     }
