@@ -25,7 +25,7 @@ class API
             self::$key = Utils::getConfigFiles('system')['key'];
             self::$api_url = Utils::getConfigFiles('system')['api_url'];
             self::$jwt_token = Utils::getConfigFiles('system')['jwt_token'];
-            self::$version = \Composer\InstalledVersions::getRootPackage()['version'];
+            self::$version = \Composer\InstalledVersions::getRootPackage()['pretty_version'];
         }
 
         if (!self::$client) {
@@ -105,7 +105,7 @@ class API
     public static function sendResults($results)
     {
         self::configureAPI();
-        $result['client_version'] = self::$version;
+        $result['result']['client_version'] = self::$version;
         self::doRequest('POST', "worker/enqueue_task", $results);
     }
 
