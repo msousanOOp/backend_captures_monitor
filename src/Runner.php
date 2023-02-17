@@ -151,7 +151,7 @@ class Runner extends AbstractEvent
                         $result['result']['log'] = array_pop($connector->getContent()['logs']);
                     } elseif (!empty($tasks['tasks'])) {
                         foreach ($tasks['tasks'] as $task) {
-                            $connector->process(["task_id" => time(), "command" => $task]);
+                            $connector->process(["task_id" => sha1($task), "command" => $task]);
                         }
                         $result['result']['results'] = $connector->getContent();
                     }
