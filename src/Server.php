@@ -25,14 +25,14 @@ class Server extends ComponentControl
 
     public function install()
     {
-        $this->event = $this->server->getComponent("Sohris\\Event\\Event");
-        $this->runner = $this->event->getEvent("App\\Runner");
-        Loop::addPeriodicTimer(360, fn () => $this->restartCollector());
-        Loop::addPeriodicTimer(60, fn () => $this->sendStats());
     }
 
     public function start()
     {
+        $this->event = $this->server->getComponent("Sohris\\Event\\Event");
+        $this->runner = $this->event->getEvent("App\\Runner");
+        Loop::addPeriodicTimer(360, fn () => $this->restartCollector());
+        Loop::addPeriodicTimer(60, fn () => $this->sendStats());
     }
 
     private function restartCollector()
@@ -42,8 +42,8 @@ class Server extends ComponentControl
 
     private function sendStats()
     {
-        
-        $base = json_decode(file_get_contents(CoreServer::getRootDir() . "/stats"),true);
+
+        $base = json_decode(file_get_contents(CoreServer::getRootDir() . "/stats"), true);
         $base['uptime'] = $this->server->getUptime();
         $base['thread_status'] = $this->runner->getStats();
         API::sendStats($base);
