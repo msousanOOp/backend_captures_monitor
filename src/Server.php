@@ -11,7 +11,7 @@ class Server extends ComponentControl
 {
     private $server;
     private $runner;
-    
+
     /**
      * @var Event
      */
@@ -21,13 +21,14 @@ class Server extends ComponentControl
     public function __construct()
     {
         $this->server = CoreServer::getServer();
-        $this->event = $this->server->getComponent("Sohris\\Event\\Event");
-        $this->runner = $this->event->getEvent("App\\Runner");
     }
 
     public function install()
     {
+        $this->event = $this->server->getComponent("Sohris\\Event\\Event");
+        $this->runner = $this->event->getEvent("App\\Runner");
         Loop::addPeriodicTimer(360, fn () => $this->restartCollector());
+        Loop::addPeriodicTimer(60, fn () => $this->sendStats());
     }
 
     public function start()
