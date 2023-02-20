@@ -8,13 +8,10 @@ use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
 use Exception;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Sohris\Core\Server;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
-use Sohris\Event\Event\AbstractEvent;
-
+use Sohris\Event\Event\EventControl;
 
 /**
  * @Time(
@@ -22,7 +19,7 @@ use Sohris\Event\Event\AbstractEvent;
  *  time="1"
  * )
  */
-class Runner extends AbstractEvent
+class Runner extends EventControl
 {
     private static $key;
     private static $total_tasks = 0;
@@ -34,7 +31,6 @@ class Runner extends AbstractEvent
     public static function run()
     {
         try {
-            self::firstRun();
             $task_start = CoreUtils::microtimeFloat();
             if (!($tasks = API::getNextTasks())) {
                 return;
@@ -167,7 +163,7 @@ class Runner extends AbstractEvent
         }
     }
 
-    private static function firstRun()
+    public static function firstRun()
     {
         if (!self::$key) {
             self::$key = CoreUtils::getConfigFiles('system')['key'];

@@ -1,9 +1,9 @@
 {
     "name": "dbsnoop/monitor",
     "type": "project",
-    "version": "v1.3",
+    "version": "v1.4",
     "require": {
-        "sohris/events": "^0.2.4",
+        "sohris/events": "^0.3",
         "guzzlehttp/guzzle": "^7.5",
         "firebase/php-jwt": "^6.3",
         "symfony/console": "^5.4",
