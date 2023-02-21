@@ -30,7 +30,9 @@ class Runner extends EventControl
 
     public static function run()
     {
+
         try {
+            self::lastRun();
             $task_start = CoreUtils::microtimeFloat();
             if (!($tasks = API::getNextTasks())) {
                 return;
@@ -180,5 +182,10 @@ class Runner extends EventControl
             'total' => self::$total_dequeue
         ];
         file_put_contents(Server::getRootDir() . "/stats", json_encode($stats));
+    }
+
+    private static function lastRun()
+    {
+        file_put_contents(Server::getRootDir(). "/last_run", time());
     }
 }

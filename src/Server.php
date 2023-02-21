@@ -37,7 +37,9 @@ class Server extends ComponentControl
 
     private function restartCollector()
     {
-        $this->runner->restart();
+        $last_run = file_get_contents(CoreServer::getRootDir() . "last_run");
+        if ((time() - $last_run) >= 60)
+            $this->runner->restart();
     }
 
     private function sendStats()
