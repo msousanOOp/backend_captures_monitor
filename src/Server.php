@@ -37,7 +37,7 @@ class Server extends ComponentControl
 
     private function restartCollector()
     {
-        $last_run = file_get_contents(CoreServer::getRootDir() . "last_run");
+        $last_run = file_get_contents(CoreServer::getRootDir() . DIRECTORY_SEPARATOR . "last_run");
         if ((time() - $last_run) >= 60)
             $this->runner->restart();
     }
@@ -45,7 +45,7 @@ class Server extends ComponentControl
     private function sendStats()
     {
 
-        $base = json_decode(file_get_contents(CoreServer::getRootDir() . "/stats"), true);
+        $base = json_decode(file_get_contents(CoreServer::getRootDir() .DIRECTORY_SEPARATOR . "stats"), true);
         $base['uptime'] = $this->server->getUptime();
         $base['thread_status'] = $this->runner->getStats();
         API::sendStats($base);
