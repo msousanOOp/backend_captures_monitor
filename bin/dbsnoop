@@ -6,25 +6,40 @@ while getopts k:c:t:i:s:u: opts; do
         i) INSTANCE_VAL=${OPTARG} ;;
         s) SERVICE_VAL=${OPTARG} ;;
         k) TASK_VAL=${OPTARG} ;;
-        u) UPDATE=${OPTARG} ;;
+        u) UPDATE=1 ;;
     esac
 done
 
-if [ -z $UPDATE] 
+echo $UPDATE;
+if [ ! -z $UPDATE ]
 then
 
     cd /app
 
-    HAS_NO_UPDATE=$(git pull https://github.com/dbsnOOp/backend_captures_monitor -b $UPDATE | grep "Already" | wc -l)
-
-    if [ "1" -eq $HAS_NO_UPDATE ]
+    git init
+    
+    if [ ${git remote -v | wc -l } -eq "0" ]
     then
-        echo "Already Update"
-        exit;
+        git remote add origin https://github.com/dbsnOOp/backend_captures_monitor
     fi;
 
-    export COMPOSER_ALLOW_SUPERUSER=1 | composer update
+    git fetch --tags
 
+    TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+    CUR_TAG=$(git describe --tags)
+
+    if [ $TAG -eq $CUR_TAG]
+    then
+    
+        echo "Already Update"
+        exit;
+
+    fi;
+
+    git checkout tags/$TAG
+    
+    export COMPOSER_ALLOW_SUPERUSER=1 | composer update
+    echo "123";
     exit;
 fi;
 
