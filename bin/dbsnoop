@@ -1,13 +1,32 @@
 #! /bin/bash
-while getopts k:c:t:i:s: opts; do
+while getopts k:c:t:i:s:u: opts; do
     case ${opts} in
         c) CLEAR_VAL=${OPTARG} ;;
         t) TEST_VAL=${OPTARG} ;;
         i) INSTANCE_VAL=${OPTARG} ;;
         s) SERVICE_VAL=${OPTARG} ;;
         k) TASK_VAL=${OPTARG} ;;
+        u) UPDATE=${OPTARG} ;;
     esac
 done
+
+if [ -z $UPDATE] 
+then
+
+    cd /app
+
+    HAS_NO_UPDATE=$(git pull https://github.com/dbsnOOp/backend_captures_monitor -b $UPDATE | grep "Already" | wc -l)
+
+    if [ "1" -eq $HAS_NO_UPDATE ]
+    then
+        echo "Already Update"
+        exit;
+    fi;
+
+    export COMPOSER_ALLOW_SUPERUSER=1 | composer update
+
+    exit;
+fi;
 
 case $CLEAR_VAL in
     cache)
