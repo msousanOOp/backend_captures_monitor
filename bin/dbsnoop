@@ -34,7 +34,7 @@ then
         exit;
     fi;
 
-    git checkout tags/$TAG
+    git checkout --force tags/$TAG
 
     export COMPOSER_ALLOW_SUPERUSER=1 | composer update
     exit;
