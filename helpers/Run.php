@@ -4,10 +4,26 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Sohris\Core\Utils;
 
-include __DIR__."/../bootstrap.php";
+include __DIR__ . "/../bootstrap.php";
 
 function check_register()
 {
+    $file_path = __DIR__ . "/../config";
+    if (!is_dir($file_path)) {
+        mkdir($file_path, 0777, true);
+        touch($file_path . "/system.json");
+    }
+    if (empty(file_get_contents($file_path . "/system.json"))) {
+        $default_config = [
+            "log_folder" => "/app/storage/log",
+            "key" => "",
+            "api_url" => "",
+            "jwr_token" => "",
+            "debug" => true
+        ];
+        file_put_contents($file_path . "/system.json", json_encode($default_config));
+    }
+
     $configs = json_decode(file_get_contents(__DIR__ . "/../config/system.json"), true);
 
     return !empty($configs['jwt_token']);
@@ -87,23 +103,12 @@ function run()
 function save_system_file(string $api, string $key, string $token)
 {
     $file_path = realpath(__DIR__ . "/../config");
-    if(!file_exists($file_path . "/system.json"))
-    {
-        Utils::checkFolder($file_path, "create");
-        $default_config = [
-            "log_folder" => "/app/storage/log",
-            "key" => "",
-            "api_url" => "",
-            "jwr_token" => "",
-            "debug" => true
-        ];
-        file_put_contents($file_path. "/system.json", json_encode($default_config));
-    }
-    $file = json_decode(file_get_contents($file_path. "/system.json"), true);
+
+    $file = json_decode(file_get_contents($file_path . "/system.json"), true);
     $file['key'] = $key;
     $file['api_url'] = $api;
     $file['jwt_token'] = $token;
-    file_put_contents($file_path. "/system.json", json_encode($file));
+    file_put_contents($file_path . "/system.json", json_encode($file));
 }
 function main()
 {
