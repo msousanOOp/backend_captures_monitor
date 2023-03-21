@@ -11,6 +11,7 @@ use Exception;
 use Sohris\Core\Server;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
+use Sohris\Event\Annotations\StartRunning;
 use Sohris\Event\Event\EventControl;
 
 /**
@@ -18,6 +19,7 @@ use Sohris\Event\Event\EventControl;
  *  type="Interval",
  *  time="60"
  * )
+ * @StartRunning
  */
 class Validate extends EventControl
 {
