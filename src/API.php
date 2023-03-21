@@ -126,4 +126,13 @@ class API
         self::configureAPI();
         return self::doRequest('POST', "worker/save_statistics", $stats);
     }
+
+    public static function getValidateHash()
+    {
+        return self::doRequest('POST', "worker/valid");
+    }
+    public static function getServersConfigs()
+    {
+        return self::doRequest('POST', "worker/get_servers_configs");
+    }
 }

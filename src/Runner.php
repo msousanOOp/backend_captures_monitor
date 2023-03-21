@@ -16,10 +16,10 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="1"
+ *  time="5"
  * )
  */
-class Runner extends EventControl
+class Runner
 {
     private static $key;
     private static $total_tasks = 0;

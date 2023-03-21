@@ -1,7 +1,7 @@
 {
     "name": "dbsnoop/monitor",
     "type": "project",
-    "version": "v1.5.0",
+    "version": "v2.0.0",
     "require": {
         "sohris/events": "^0.3",
         "guzzlehttp/guzzle": "^7.5",
