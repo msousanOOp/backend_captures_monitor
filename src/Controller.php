@@ -18,7 +18,7 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="60"
+ *  time="5"
  * )
  * @StartRunning
  */
@@ -35,24 +35,29 @@ class Controller extends EventControl
 
     public static function run()
     {
-        if(self::checkServers()) return;
 
-        foreach(self::$timers as $timer)
-        {
+        if (!self::checkServers() || empty(self::$timers)) {
+            self::recreate();
+        }
+    }
+
+    private static function recreate(){
+        echo "Recriete" . PHP_EOL;
+        foreach (self::$timers as $timer) {
             Loop::cancelTimer($timer);
         }
 
         $servers = Utils::getServers();
-
-        foreach($servers as $server)
-        {
-            $configs = Utils::getConfigs($server);
-            foreach($configs['tasks'] as $task)
-            {
-                self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'],self::runTask($configs['server_id'],$configs['customer_id'], $task, $configs['configs']));
+        foreach ($servers as $server) {
+            $configs = Utils::objectToArray(Utils::getConfigs($server));
+            foreach ($configs['tasks'] as $service => $tasks) {
+                foreach ($tasks as $task) {
+                    $task = Utils::objectToArray($task);
+                    echo "Configuring  $configs[server_id] $service $task[frequency] - $task[task_id] " . PHP_EOL;
+                    self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'], fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']));
+                }
             }
         }
-
     }
 
     public static function firstRun()
@@ -75,71 +80,67 @@ class Controller extends EventControl
 
     private static function lastRun()
     {
-        file_put_contents(Server::getRootDir(). "/last_run", time());
+        file_put_contents(Server::getRootDir() . "/last_run", time());
     }
 
     private static function checkServers()
     {
-        if(file_exists(Server::getRootDir() . "/validate")) return true;
+        if (file_exists(Server::getRootDir() . "/validate")) return true;
+        $server = Utils::objectToArray(API::getServersConfigs());
+        foreach ($server['servers'] as $id => $content) {
+            Utils::saveServerConfig($id, (array)$content);
+        }
 
-         $server = API::getServersConfigs();
-         foreach($server['servers'] as $id => $content)
-         {
-            Utils::saveServerConfig($id, $content);
-         }
-
-         Utils::saveServers(array_keys($server['servers']));
-
-         file_put_contents(Server::getRootDir() . "/validate", $server['valid_hash']);
+        Utils::saveServers(array_keys($server['servers']));
+        file_put_contents(Server::getRootDir() . "/validate", $server['valid_hash']);
         return false;
-
     }
 
-    private static function runTask($server, $customer, $task, $configs)
+    private static function runTask($server, $customer, $service, $task, $configs)
     {
         self::$total_tasks++;
         $process_start = CoreUtils::microtimeFloat();
-        if(!array_key_exists($server, self::$connectors))
-            self::$connectors = [
+        if (!array_key_exists($server, self::$connectors))
+            self::$connectors[$server] = [
                 'mysql' => null,
                 'postgresql' => null,
                 'ssh' => null,
                 'mssql' => null
             ];
-        $config = $configs[$task['service']];
-        
+        $config = $configs[$service];
+
         $result = [
             'type' => $task['type'],
             'result' => []
         ];
         switch ($task['type']) {
             case 'mysql':
-                if (!self::$connectors['mysql'])
-                    self::$connectors['mysql'] = new Mysql((array)$config);
-                if (!self::$connectors['mysql']->openConnection())
+                if (!self::$connectors[$server]['mysql'])
+                    self::$connectors[$server]['mysql'] = new Mysql((array)$config);
+                if (!self::$connectors[$server]['mysql']->openConnection())
                     break;
-                self::$connectors['mysql']->process($task);
+                self::$connectors[$server]['mysql']->process($task);
                 break;
             case 'mssql':
-                if (!self::$connectors['mssql'])
-                    self::$connectors['mssql'] = new Mssql((array)$config);
-                if (!self::$connectors['mssql']->openConnection())
+                if (!self::$connectors[$server]['mssql'])
+                    self::$connectors[$server]['mssql'] = new Mssql((array)$config);
+                if (!self::$connectors[$server]['mssql']->openConnection())
                     break;
-                self::$connectors['mssql']->process($task);
+                self::$connectors[$server]['mssql']->process($task);
                 break;
             case 'postgresql':
-                if (!self::$connectors['postgresql'])
-                    self::$connectors['postgresql'] = new PostgreSql((array)$config);
-                if (!self::$connectors['postgresql']->openConnection())
+                if (!self::$connectors[$server]['postgresql'])
+                    self::$connectors[$server]['postgresql'] = new PostgreSql((array)$config);
+                if (!self::$connectors[$server]['postgresql']->openConnection())
                     break;
-                self::$connectors['postgresql']->process($task);
+                self::$connectors[$server]['postgresql']->process($task);
                 break;
             case 'ssh':
-                if (!self::$connectors['ssh'])
-                    self::$connectors['ssh'] = new Ssh((array)$config);
-                if (!self::$connectors['ssh']->openConnection())
+                if (!self::$connectors[$server]['ssh'])
+                    self::$connectors[$server]['ssh'] = new Ssh((array)$config);
+                if (!self::$connectors[$server]['ssh']->openConnection())
                     break;
-                self::$connectors['ssh']->process($task);
+                self::$connectors[$server]['ssh']->process($task);
                 break;
         }
 
@@ -149,7 +150,7 @@ class Controller extends EventControl
             "logs" => []
         ];
 
-        foreach (self::$connectors as $connector) {
+        foreach (self::$connectors[$server] as $connector) {
             if ($connector) {
                 $content = $connector->getContent();
                 $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
@@ -159,13 +160,11 @@ class Controller extends EventControl
             }
         };
         $result['result'] = [
-            "version" => "2",
             "timestamp" => time(),
             "tasks_id" => [$task['task_id']],
             "customer_id" => $customer,
             "server_id" => $server,
-            "handshake_id" => "",
-            "service" => $task['service'],
+            "service" => $service,
             "captures" => $pre_process_tasks['captures'],
             "timers" => $pre_process_tasks['timers'],
             "logs" => $pre_process_tasks['logs'],

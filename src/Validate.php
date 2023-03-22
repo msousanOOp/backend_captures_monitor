@@ -17,7 +17,7 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="60"
+ *  time="5"
  * )
  * @StartRunning
  */
@@ -29,10 +29,9 @@ class Validate extends EventControl
         if(!file_exists(Server::getRootDir() . "/validate")) return;
 
         $hash = file_get_contents(Server::getRootDir() . "/validate");
-
         $server_hash = API::getValidateHash();
-
-        if($hash != $server_hash) unlink(Server::getRootDir() . "/validate");
+        
+        if($hash != $server_hash[0]) unlink(Server::getRootDir() . "/validate");
     }
 
     public static function firstRun()

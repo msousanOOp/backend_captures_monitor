@@ -30,7 +30,7 @@ class Server extends ComponentControl
     public function start()
     {
         $this->event = $this->server->getComponent("Sohris\\Event\\Event");
-        $this->runner = $this->event->getEvent("App\\Runner");
+        $this->runner = $this->event->getEvent("App\\Controller");
         Loop::addPeriodicTimer(360, fn () => $this->restartCollector());
         Loop::addPeriodicTimer(60, fn () => $this->sendStats());
     }
