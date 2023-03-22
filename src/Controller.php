@@ -18,7 +18,7 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="5"
+ *  time="60"
  * )
  * @StartRunning
  */
@@ -42,7 +42,6 @@ class Controller extends EventControl
     }
 
     private static function recreate(){
-        echo "Recriete" . PHP_EOL;
         foreach (self::$timers as $timer) {
             Loop::cancelTimer($timer);
         }
@@ -53,7 +52,7 @@ class Controller extends EventControl
             foreach ($configs['tasks'] as $service => $tasks) {
                 foreach ($tasks as $task) {
                     $task = Utils::objectToArray($task);
-                    echo "Configuring  $configs[server_id] $service $task[frequency] - $task[task_id] " . PHP_EOL;
+                    //echo "Configuring  $configs[server_id] $service $task[frequency] - $task[task_id] " . PHP_EOL;
                     self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'], fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']));
                 }
             }
