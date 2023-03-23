@@ -106,7 +106,8 @@ class Controller extends EventControl
                 'ssh' => null,
                 'mssql' => null
             ];
-        $config = $configs[$service];
+
+        $config = $service == 'business' ?  $configs[$task['ref_service']] : $configs[$service];
 
         $result = [
             'type' => $task['type'],
