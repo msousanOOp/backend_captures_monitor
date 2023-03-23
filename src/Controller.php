@@ -41,7 +41,8 @@ class Controller extends EventControl
         }
     }
 
-    private static function recreate(){
+    private static function recreate()
+    {
         foreach (self::$timers as $timer) {
             Loop::cancelTimer($timer);
         }
@@ -150,15 +151,13 @@ class Controller extends EventControl
             "logs" => []
         ];
 
-        foreach (self::$connectors[$server] as $connector) {
-            if ($connector) {
-                $content = $connector->getContent();
-                $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
-                $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
-                $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
-                $connector->closeConnection();
-            }
-        };
+        
+        $content = self::$connectors[$server]['ssh']->getContent();
+        $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
+        $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
+        $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
+        self::$connectors[$server]['ssh']->clearContent();
+
         $result['result'] = [
             "timestamp" => time(),
             "tasks_id" => [$task['task_id']],

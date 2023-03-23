@@ -71,4 +71,13 @@ class Connector
             "logs" => $this->logs
         ];
     }
+
+    public function clearContent()
+    {
+        $this->timer = 0;
+        $this->timers = [];
+        $this->logs = [];
+        $this->captures = [];
+        $this->logger;
+    }
 }
