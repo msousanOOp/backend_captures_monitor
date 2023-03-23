@@ -79,5 +79,6 @@ class Connector
         $this->logs = [];
         $this->captures = [];
         $this->logger;
+        $this->statistics = [];
     }
 }
