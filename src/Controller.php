@@ -152,11 +152,11 @@ class Controller extends EventControl
         ];
 
         
-        $content = self::$connectors[$server]['ssh']->getContent();
+        $content = self::$connectors[$server][$task['type']]->getContent();
         $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
         $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
         $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
-        self::$connectors[$server]['ssh']->clearContent();
+        self::$connectors[$server][$task['type']]->clearContent();
 
         $result['result'] = [
             "timestamp" => time(),
