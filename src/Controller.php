@@ -121,7 +121,7 @@ class Controller extends EventControl
     private static function runTask($server, $customer, $service, $task, $configs)
     {
         try {
-            self::$logger->info("Running Task", [$server, $customer, $service, $task]);
+            self::$logger->info("Running Task", [$server, $customer, $service]);
             self::$total_tasks++;
             $process_start = CoreUtils::microtimeFloat();
             if (!array_key_exists($server, self::$connectors))
@@ -197,7 +197,7 @@ class Controller extends EventControl
             $process_end = CoreUtils::microtimeFloat();
             self::$time_process += ($process_end - $process_start);
             self::saveStatistcs();
-            self::$logger->info("Task Runned - " .round(($process_end - $process_start), 3) , [$server, $customer, $service, $task]);
+            self::$logger->info("Task Runned - " .round(($process_end - $process_start), 3) , [$server, $customer, $service]);
 
         } catch (Exception $e) {
             self::$logger->info("Error Task", [$server, $customer, $service, $task]);
