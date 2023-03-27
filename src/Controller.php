@@ -60,6 +60,7 @@ class Controller extends EventControl
                 $configs = Utils::objectToArray(Utils::getConfigs($server));
                 foreach ($configs['tasks'] as $service => $tasks) {
                     foreach ($tasks as $task) {
+                        if($task['frequency'] == 0) continue;
                         self::$logger->info("Configuring Server $configs[server_id] - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                         $task = Utils::objectToArray($task);
                         self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'], fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']));
@@ -107,7 +108,6 @@ class Controller extends EventControl
             foreach ($server['servers'] as $id => $content) {
                 Utils::saveServerConfig($id, (array)$content);
             }
-
             self::$logger->info("Saving servers...");
             Utils::saveServers(array_keys($server['servers']));
             file_put_contents(Server::getRootDir() . "/validate", $server['valid_hash']);
