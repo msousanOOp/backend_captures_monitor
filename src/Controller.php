@@ -50,8 +50,9 @@ class Controller extends EventControl
 
             if (!empty(self::$timers)) {
                 self::$logger->info("Clean Timers");
-                foreach (self::$timers as $timer) {
-                    Loop::cancelTimer($timer);
+                foreach (self::$timers as $key => $timer) {
+                    Loop::cancelTimer(self::$timers[$key]);
+                    unset(self::$timers[$key]);
                 }
             }
             self::$logger->info("Getting Servers");
