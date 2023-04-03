@@ -117,6 +117,13 @@ class API
         self::doRequest('POST', "worker/enqueue_task", $results);
     }
 
+    public static function sendTestResults($results)
+    {
+        self::configureAPI();
+        $results['result']['client_version'] = self::$version;
+        self::doRequest('POST', "worker/test_result", $results);
+    }
+
     public static function getServerConfig($server, $service)
     {
         self::configureAPI();
