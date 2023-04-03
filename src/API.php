@@ -102,6 +102,14 @@ class API
         return (array) $tasks;
     }
 
+    public static function getTests()
+    {
+        self::configureAPI();
+
+        $tasks = self::doRequest('POST', "worker/next_test");
+        return (array) $tasks;
+    }
+
     public static function sendResults($results)
     {
         self::configureAPI();

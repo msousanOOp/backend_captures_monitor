@@ -1,12 +1,13 @@
 <?php
 
-namespace App;
+namespace App\Events;
 
 use App\API;
 use App\Connectors\Mssql;
 use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
+use App\Utils;
 use Exception;
 use React\EventLoop\Loop;
 use Sohris\Core\Logger;

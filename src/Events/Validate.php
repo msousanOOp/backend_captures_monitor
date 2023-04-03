@@ -1,16 +1,11 @@
 <?php
 
-namespace App;
+namespace App\Events;
 
 use App\API;
-use App\Connectors\Mssql;
-use App\Connectors\Mysql;
-use App\Connectors\PostgreSql;
-use App\Connectors\Ssh;
 use Exception;
 use Monolog\Logger;
 use Sohris\Core\Server;
-use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Annotations\StartRunning;
 use Sohris\Event\Event\EventControl;
