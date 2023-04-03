@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App;
 
 use App\API;
 use App\Connectors\Mssql;
@@ -38,7 +38,6 @@ class Controller extends EventControl
 
     public static function run()
     {
-
         if (!self::checkServers() || empty(self::$timers)) {
             self::recreate();
         }
