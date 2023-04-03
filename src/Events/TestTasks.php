@@ -8,7 +8,6 @@ use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
 use Exception;
-use Sohris\Core\Server;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Event\EventControl;
@@ -19,14 +18,9 @@ use Sohris\Event\Event\EventControl;
  *  time="5"
  * )
  */
-class TestTasks
+class TestTasks extends EventControl
 {
     private static $key;
-    private static $total_tasks = 0;
-    private static $total_tests = 0;
-    private static $total_dequeue = 0;
-    private static $time_task = 0;
-    private static $time_process = 0;
 
     public static function run()
     {
