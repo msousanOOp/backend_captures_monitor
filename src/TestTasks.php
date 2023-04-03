@@ -67,7 +67,7 @@ class TestTasks extends EventControl
                     $result['result']['results'] = $connector->getContent();
                 }
             }
-            API::sendResults($result);
+            API::sendTestResults($result);
             unset($result);
         } catch (Exception $e) {
             var_dump($e->getMessage());
