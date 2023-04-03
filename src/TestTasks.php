@@ -30,6 +30,9 @@ class TestTasks extends EventControl
             if (!($tasks = API::getTests())) {
                 return;
             }
+            if (empty($tasks)) {
+                return;
+            }
             $result = [
                 'type' => $tasks['type'],
                 'result' => []
