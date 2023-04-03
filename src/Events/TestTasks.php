@@ -10,6 +10,7 @@ use App\Connectors\Ssh;
 use Exception;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
+use Sohris\Event\Annotations\StartRunning;
 use Sohris\Event\Event\EventControl;
 
 /**
@@ -17,6 +18,7 @@ use Sohris\Event\Event\EventControl;
  *  type="Interval",
  *  time="5"
  * )
+ * @StartRunning
  */
 class TestTasks extends EventControl
 {
@@ -24,7 +26,6 @@ class TestTasks extends EventControl
 
     public static function run()
     {
-
         try {
             if (!($tasks = API::getTests())) {
                 return;
