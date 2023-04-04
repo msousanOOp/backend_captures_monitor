@@ -60,11 +60,14 @@ class Controller extends EventControl
             }
             self::$logger->info("Getting Servers");
             $servers = Utils::getServers();
+            self::$logger->info("Configuring Servers " . implode(" - ",$servers));
+
             foreach ($servers as $server) {
                 $configs = Utils::objectToArray(Utils::getConfigs($server));
                 if(!array_key_exists('server_id', $configs) || empty($configs['server_id'])) continue;
                 self::$timers[$configs['server_id']] = new Worker;
                 self::$timers[$configs['server_id']]->callOnFirst(fn() => self::firstRun());
+                self::$timers[$configs['server_id']]->callFunction(fn () => self::logger(),60);
                 
                 foreach ($configs['tasks'] as $service => $tasks) {
                     foreach ($tasks as $task) {
@@ -74,6 +77,7 @@ class Controller extends EventControl
                         self::$timers[$configs['server_id']]->callFunction(fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']),(int)$task['frequency']);
                     }
                 }
+
                 self::$timers[$configs['server_id']]->run();
             }
             self::$start = CoreUtils::microtimeFloat();
@@ -218,8 +222,6 @@ class Controller extends EventControl
                 self::$task_runned[$server][$task['task_id']] = 0;
             }
             self::$task_runned[$server][$task['task_id']]++;
-
-
             //self::$logger->info("Task Runned $task[task_id] $server - $service " .round(($process_end - $process_start), 3));
 
         } catch (Exception $e) {
