@@ -62,7 +62,7 @@ class Controller extends EventControl
                 $configs = Utils::objectToArray(Utils::getConfigs($server));
                 foreach ($configs['tasks'] as $service => $tasks) {
                     foreach ($tasks as $task) {
-                        if($task['frequency'] == 0) continue;
+                        if($task['frequency'] == 0 || !array_key_exists('server_id', $configs) || empty($configs['server_id'])) continue;
                         self::$logger->info("Configuring Server $configs[server_id] - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                         $task = Utils::objectToArray($task);
                         self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'], fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']));
@@ -73,7 +73,7 @@ class Controller extends EventControl
         } catch (Exception $e) {
             self::$logger->info("Controller Error");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
-        }
+        } 
     }
 
     public static function firstRun()
