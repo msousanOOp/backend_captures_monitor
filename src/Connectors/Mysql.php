@@ -2,50 +2,56 @@
 
 namespace App\Connectors;
 
-use PDO;
-use Sohris\Core\Utils;
+
+use Doctrine\DBAL\DriverManager;
 
 class Mysql extends \App\Connector
 {
     /**
-     * @var \PDO
+     * @var \Doctrine\DBAL\Connection
      */
     private $connector;
-    
+
     public function __construct($config = [])
     {
         $this->connector_name = 'mysql';
         parent::__construct($config);
-        
     }
     public function openConnection(): bool
-    {   
-        if($this->connector) return true;
+    {
+        if ($this->connector && $this->connector->isConnected()) return true;
 
-        if (!$this->invalidate_op) {
-            list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
-            $this->startTime("connection_time_mysql");
-            try {
-                $pdo = new \PDO("mysql:host=$host;port=$port;dbname=mysql", $user, $pass, array(
-                    PDO::ATTR_TIMEOUT => 5,
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-                ));
-                $this->connector = $pdo;
-                $this->finishTime("connection_time_mysql");
-                return true;
-            } catch (\PDOException $e) {
-                $this->invalidate_op = true;
-                $this->log("Connection - MYSQL", "Error", $e->getCode(), $e->getMessage());
-                return false;
-            }
+        list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
+        $this->startTime("connection_time_mysql");
+        try {
+            $connectionParams = [
+                'dbname' => 'mysql',
+                'user' => $user,
+                'password' => $port,
+                'host' => $host,
+                'port' => $port,
+                'driver' => 'pdo_mysql',
+                'driverOptions' => array(
+                    \PDO::ATTR_TIMEOUT => 5,
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+                )
+            ];
+            $this->connector = DriverManager::getConnection($connectionParams);
+            $this->finishTime("connection_time_mysql");
+            return true;
+        } catch (\Exception $e) {
+            $this->invalidate_op = true;
+            $this->log("Connection - MYSQL", "Error", $e->getCode(), $e->getMessage());
         }
         return false;
     }
-    
-    public function isConnected() :bool
+
+    public function isConnected(): bool
     {
-        if($this->connector)
-            return true;
+        if ($this->connector) {
+            if ($this->connector->isConnected()) return true;
+        }
+
         return false;
     }
 
@@ -58,15 +64,15 @@ class Mysql extends \App\Connector
 
     public function process($task)
     {
-        $this->startTime("task_".$task['task_id']);
+        $this->startTime("task_" . $task['task_id']);
         try {
             $stm = $this->connector->query($task['command']);
-            $this->finishTime("task_".$task['task_id']);
+            $this->finishTime("task_" . $task['task_id']);
         } catch (\PDOException $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }
-        $this->addCapture("task_".$task['task_id'], $stm->fetchAll());
+        $this->addCapture("task_" . $task['task_id'], $stm->fetchAll());
         return true;
     }
 }

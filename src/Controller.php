@@ -107,11 +107,6 @@ class Controller extends EventControl
         file_put_contents(Server::getRootDir() . "/stats", json_encode($stats));
     }
 
-    private static function lastRun()
-    {
-        file_put_contents(Server::getRootDir() . "/last_run", time());
-    }
-
     private static function checkServers()
     {
         if (file_exists(Server::getRootDir() . "/validate")) return true;
