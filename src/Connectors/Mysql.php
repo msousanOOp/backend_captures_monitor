@@ -66,13 +66,15 @@ class Mysql extends \App\Connector
     {
         $this->startTime("task_" . $task['task_id']);
         try {
-            $stm = $this->connector->query($task['command']);
+
+            $stm = $this->connector->prepare($task['command']);
+            $result = $stm->executeQuery();
             $this->finishTime("task_" . $task['task_id']);
-        } catch (\PDOException $e) {
+            $this->addCapture("task_" . $task['task_id'], $result->fetchAllAssociative());
+            return true;
+        } catch (\Exception $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }
-        $this->addCapture("task_" . $task['task_id'], $stm->fetchAll());
-        return true;
     }
 }
