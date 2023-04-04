@@ -27,7 +27,7 @@ class Mysql extends \App\Connector
             $connectionParams = [
                 'dbname' => 'mysql',
                 'user' => $user,
-                'password' => $port,
+                'password' => $pass,
                 'host' => $host,
                 'port' => $port,
                 'driver' => 'pdo_mysql',
