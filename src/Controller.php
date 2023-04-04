@@ -35,6 +35,7 @@ class Controller extends EventControl
     private static $timers = [];
     private static $connectors = [];
     private static $logger;
+    private static $task_runned = [];
 
     public static function run()
     {
@@ -199,11 +200,32 @@ class Controller extends EventControl
             $process_end = CoreUtils::microtimeFloat();
             self::$time_process += ($process_end - $process_start);
             self::saveStatistcs();
-            self::$logger->info("Task Runned $task[task_id] $server - $service " .round(($process_end - $process_start), 3));
+            if(!array_key_exists($server, self::$task_runned))
+            {
+                self::$task_runned[$server] = [];
+            }
+            if(!array_key_exists($task['task_id'], self::$task_runned[$server]))
+            {
+                self::$task_runned[$server][$task['task_id']] = 0;
+            }
+            self::$task_runned[$server][$task['task_id']]++;
+
+
+            //self::$logger->info("Task Runned $task[task_id] $server - $service " .round(($process_end - $process_start), 3));
 
         } catch (Exception $e) {
             self::$logger->info("Error Task $task[task_id] $server - $service");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
+        }
+    }
+    private static function logger()
+    {
+        foreach(self::$task_runned as $server => $tasks)
+        {
+            foreach($tasks as $id => $a)
+            {
+                self::$logger->info("Server$server - Task$id => $a");
+            }
         }
     }
 }
