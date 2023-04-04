@@ -119,7 +119,7 @@ class Controller extends EventControl
             self::$logger->info("Getting new Servers");
             $server = Utils::objectToArray(API::getServersConfigs());
 
-            self::$logger->info("Configuring " . count($server['servers']) . " servers", $server);
+            self::$logger->info("Configuring " . count($server['servers']) . " servers");
             foreach ($server['servers'] as $id => $content) {
                 Utils::saveServerConfig($id, (array)$content);
             }
