@@ -12,6 +12,7 @@ use Exception;
 use React\EventLoop\Loop;
 use Sohris\Core\Logger;
 use Sohris\Core\Server;
+use Sohris\Core\Tools\Worker\Worker;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Annotations\StartRunning;
@@ -36,6 +37,7 @@ class Controller extends EventControl
     private static $connectors = [];
     private static $logger;
     private static $task_runned = [];
+    private static $start;
 
     public static function run()
     {
@@ -49,11 +51,10 @@ class Controller extends EventControl
     {
         try {
             self::$logger->info("Recreate Timers");
-
             if (!empty(self::$timers)) {
                 self::$logger->info("Clean Timers");
                 foreach (self::$timers as $key => $timer) {
-                    Loop::cancelTimer(self::$timers[$key]);
+                    self::$timers[$key]->kill();
                     unset(self::$timers[$key]);
                 }
             }
@@ -61,15 +62,22 @@ class Controller extends EventControl
             $servers = Utils::getServers();
             foreach ($servers as $server) {
                 $configs = Utils::objectToArray(Utils::getConfigs($server));
+                if(!array_key_exists('server_id', $configs) || empty($configs['server_id'])) continue;
+                self::$timers[$configs['server_id']] = new Worker;
+                self::$timers[$configs['server_id']]->callOnFirst(fn() => self::firstRun());
+                
                 foreach ($configs['tasks'] as $service => $tasks) {
                     foreach ($tasks as $task) {
-                        if($task['frequency'] == 0 || !array_key_exists('server_id', $configs) || empty($configs['server_id'])) continue;
+                        if($task['frequency'] == 0) continue;
                         self::$logger->info("Configuring Server $configs[server_id] - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                         $task = Utils::objectToArray($task);
-                        self::$timers[] = Loop::addPeriodicTimer((int)$task['frequency'], fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']));
+                        self::$timers[$configs['server_id']]->callFunction(fn () => self::runTask($configs['server_id'], $configs['customer_id'], $service, $task, $configs['configs']),(int)$task['frequency']);
                     }
                 }
+                self::$timers[$configs['server_id']]->run();
             }
+            self::$start = CoreUtils::microtimeFloat();
+
         } catch (Exception $e) {
             self::$logger->info("Controller Error");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
