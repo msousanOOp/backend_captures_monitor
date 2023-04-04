@@ -19,7 +19,7 @@ class Mysql extends \App\Connector
     }
     public function openConnection(): bool
     {
-        if ($this->connector && $this->connector->isConnected()) return true;
+        //if ($this->connector && $this->connector->isConnected()) return true;
 
         list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
         $this->startTime("connection_time_mysql");
