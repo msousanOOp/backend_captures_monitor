@@ -42,6 +42,7 @@ class Controller extends EventControl
         if (!self::checkServers() || empty(self::$timers)) {
             self::recreate();
         }
+        self::logger();
     }
 
     private static function recreate()
@@ -69,7 +70,6 @@ class Controller extends EventControl
                     }
                 }
             }
-            self::logger();
         } catch (Exception $e) {
             self::$logger->info("Controller Error");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
