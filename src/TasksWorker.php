@@ -22,10 +22,13 @@ class TasksWorker
 
     public function __construct($hash)
     {
+        self::$logger = new Logger("Controller");
         $this->worker = new Worker;
+        $this->worker->callOnFirst(fn () => self::firstRun());
+
         $this->hash = $hash;
 
-        $config = API::getConfig($hash);
+        $config = Utils::objectToArray(API::getConfig($hash));
         $this->service_tasks = $config['tasks'];
         $this->server = $config['server_id'];
         $this->customer = $config['customer_id'];
@@ -38,6 +41,7 @@ class TasksWorker
     {
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
+                self::$logger->info("Configuring Server ".$this->server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 if (time() - $task['last_run'] > $task['timer_freq_sec'])
                     $this->worker->callOnFirst(fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections));
                 $this->worker->callFunction(fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections), $task['timer_freq_sec']);
