@@ -39,13 +39,17 @@ class TasksWorker
 
     private function organize()
     {
+        $server = $this->server;
+        $customer = $this->customer;
+        $connections = $this->connections;
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
                 if(!is_array($task)) continue;
-                self::$logger->info("Configuring Server ".$this->server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
+
+                self::$logger->info("Configuring Server ".$server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 if (time() - $task['last_run'] > $task['frequency'])
-                    $this->worker->callOnFirst(static fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections));
-                $this->worker->callFunction(static fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections), $task['frequency']);
+                    $this->worker->callOnFirst(static fn () => self::runTask($server, $customer, $service, $task, $connections));
+                $this->worker->callFunction(static fn () => self::runTask($server, $customer, $service, $task, $connections), $task['frequency']);
             }
         }
     }
