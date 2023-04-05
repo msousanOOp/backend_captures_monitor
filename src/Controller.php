@@ -103,7 +103,9 @@ class Controller extends EventControl
             $hashs = API::getValidateHash();
             if (empty($hashs)) {
                 self::$logger->info("No server configs");
+                return;
             }
+            
             self::$logger->info("Hashs", $hashs);
             self::$hashes = $hashs;
         } catch (Exception $e) {
