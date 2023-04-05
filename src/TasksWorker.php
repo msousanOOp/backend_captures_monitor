@@ -44,8 +44,8 @@ class TasksWorker
                 if(!is_array($task)) continue;
                 self::$logger->info("Configuring Server ".$this->server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 if (time() - $task['last_run'] > $task['frequency'])
-                    $this->worker->callOnFirst(fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections));
-                $this->worker->callFunction(fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections), $task['frequency']);
+                    $this->worker->callOnFirst(static fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections));
+                $this->worker->callFunction(static fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections), $task['frequency']);
             }
         }
     }
