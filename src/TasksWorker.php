@@ -41,6 +41,7 @@ class TasksWorker
     {
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
+                if(!is_array($task)) continue;
                 self::$logger->info("Configuring Server ".$this->server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 if (time() - $task['last_run'] > $task['frequency'])
                     $this->worker->callOnFirst(fn () => self::runTask($this->server, $this->customer, $service, $task, $this->connections));
