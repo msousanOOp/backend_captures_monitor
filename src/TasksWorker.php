@@ -24,7 +24,7 @@ class TasksWorker
     {
         self::$logger = new Logger("Controller");
         $this->worker = new Worker;
-        $this->worker->callOnFirst(fn () => self::firstRun());
+        $this->worker->callOnFirst(static fn () => self::firstRun());
 
         $this->hash = $hash;
 
