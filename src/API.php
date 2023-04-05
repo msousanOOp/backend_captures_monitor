@@ -144,10 +144,18 @@ class API
 
     public static function getValidateHash()
     {
+        self::configureAPI();
         return self::doRequest('POST', "worker/valid");
     }
     public static function getServersConfigs()
     {
+        self::configureAPI();
         return self::doRequest('POST', "worker/get_servers_configs");
+    }
+    public static function getConfig($hash)
+    {
+
+        self::configureAPI();
+        return self::doRequest('POST', "worker/get_config", ['hash' => $hash]);
     }
 }
