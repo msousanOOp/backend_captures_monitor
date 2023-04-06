@@ -6,6 +6,7 @@ use App\Connectors\Mssql;
 use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
+use React\EventLoop\Loop;
 use Sohris\Core\Logger;
 use Sohris\Core\Tools\Worker\Worker;
 
@@ -135,6 +136,13 @@ class TasksWorker
     public function run()
     {
         $this->worker->run();
+        
+        Loop::addPeriodicTimer(function () {
+            if($this->worker->getStage() != 'running'){
+                $this->worker->restart();
+                self::$logger->critical("Restart worker!!!", $this->worker->getLastError());
+            }
+        },10);
     }
     public function stop()
     {
