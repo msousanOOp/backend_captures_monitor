@@ -116,6 +116,12 @@ class API
         $results['result']['client_version'] = self::$version;
         self::doRequest('POST', "worker/enqueue_task", $results);
     }
+    public static function sendResultScheduler($results)
+    {
+        self::configureAPI();
+        $results['result']['client_version'] = self::$version;
+        self::doRequest('POST', "worker/enqueue_scheduler", $results);
+    }
 
     public static function sendTestResults($results)
     {
