@@ -41,23 +41,20 @@ class SchedulerWorker
     {
         $server = $this->server;
         $connections = $this->connections;
-        foreach ($this->service_tasks as $tasks) {
-            foreach ($tasks as $task) {
-                if (!is_array($task)) continue;
+        foreach ($this->service_tasks as $task) {
+            if (!is_array($task)) continue;
 
-                switch ($task['timer_type']) {
-                    case "CRON":
-                        self::$logger->info("Configuring Scheduler CRON Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
-                        $this->worker->callCronFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value']);
-                        break;
-                    case "DATE":
-                        self::$logger->info("Configuring Scheduler Timer Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
-                        $this->worker->callTimeoutFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value'] - time());
-                        break;
-                }
+            switch ($task['timer_type']) {
+                case "CRON":
+                    self::$logger->info("Configuring Scheduler CRON Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
+                    $this->worker->callCronFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value']);
+                    break;
+                case "DATE":
+                    self::$logger->info("Configuring Scheduler Timer Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
+                    $this->worker->callTimeoutFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value'] - time());
+                    break;
             }
         }
-       
     }
 
 
@@ -137,14 +134,14 @@ class SchedulerWorker
 
     public function run()
     {
-        $this->worker->run(); 
+        $this->worker->run();
         $this->timer = Loop::addPeriodicTimer(function () {
-            if($this->worker->getStage() != 'running'){
+            if ($this->worker->getStage() != 'running') {
                 $this->worker->clearTimeoutCallFunction();
                 $this->worker->restart();
                 self::$logger->critical("Restart worker!!!", $this->worker->getLastError());
             }
-        },10);
+        }, 10);
     }
     public function stop()
     {
