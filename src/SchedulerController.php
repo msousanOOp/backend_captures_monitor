@@ -18,7 +18,7 @@ use Sohris\Event\Event\EventControl;
  * )
  * @StartRunning
  */
-class Controller extends EventControl
+class SchedulerController extends EventControl
 {
     private static $key;
     private static $timers = [];
@@ -57,7 +57,7 @@ class Controller extends EventControl
                     self::$timers[$hash]->run();
                 }
             }
-            
+
         } catch (Exception $e) {
             self::$logger->info("Controller Error");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
