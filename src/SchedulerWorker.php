@@ -6,6 +6,7 @@ use App\Connectors\Mssql;
 use App\Connectors\Mysql;
 use App\Connectors\PostgreSql;
 use App\Connectors\Ssh;
+use React\EventLoop\Loop;
 use Sohris\Core\Logger;
 use Sohris\Core\Tools\Worker\Worker;
 
@@ -15,7 +16,7 @@ class SchedulerWorker
     private $worker;
     private $service_tasks = [];
     private $server;
-    private $customer;
+    private $timer;
     private $connections = [];
     private static $logger;
     private static $connectors = [];
@@ -39,7 +40,6 @@ class SchedulerWorker
     private function organize()
     {
         $server = $this->server;
-        $customer = $this->customer;
         $connections = $this->connections;
         foreach ($this->service_tasks as $tasks) {
             foreach ($tasks as $task) {
@@ -57,6 +57,7 @@ class SchedulerWorker
                 }
             }
         }
+       
     }
 
 
@@ -136,10 +137,18 @@ class SchedulerWorker
 
     public function run()
     {
-        $this->worker->run();
+        $this->worker->run(); 
+        $this->timer = Loop::addPeriodicTimer(function () {
+            if($this->worker->getStage() != 'running'){
+                $this->worker->clearTimeoutCallFunction();
+                $this->worker->restart();
+                self::$logger->critical("Restart worker!!!", $this->worker->getLastError());
+            }
+        },10);
     }
     public function stop()
     {
+        Loop::cancelTimer($this->timer);
         $this->worker->kill();
     }
 }

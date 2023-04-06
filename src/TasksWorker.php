@@ -17,6 +17,7 @@ class TasksWorker
     private $service_tasks = [];
     private $server;
     private $customer;
+    private $timer;
     private $connections = [];
     private static $logger;
     private static $connectors = [];
@@ -137,7 +138,7 @@ class TasksWorker
     {
         $this->worker->run();
         
-        Loop::addPeriodicTimer(function () {
+        $this->timer = Loop::addPeriodicTimer(function () {
             if($this->worker->getStage() != 'running'){
                 $this->worker->restart();
                 self::$logger->critical("Restart worker!!!", $this->worker->getLastError());
@@ -146,6 +147,7 @@ class TasksWorker
     }
     public function stop()
     {
+        Loop::cancelTimer($this->timer);
         $this->worker->kill();
     }
 }

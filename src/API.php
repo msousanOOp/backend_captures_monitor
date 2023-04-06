@@ -153,6 +153,12 @@ class API
         self::configureAPI();
         return self::doRequest('POST', "worker/valid");
     }
+    public static function getValidateHashScheduler()
+    {
+        self::configureAPI();
+        return self::doRequest('POST', "worker/valid_scheduler");
+    }
+
     public static function getServersConfigs()
     {
         self::configureAPI();
