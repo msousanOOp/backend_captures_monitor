@@ -42,7 +42,6 @@ class Ssh extends \App\Connector
                 // }
                
                 if (!self::$connections[$this->valid_key]->ping() && !self::$connections[$this->valid_key]->login($user, self::$keys[$this->valid_key])) {
-                    unset(self::$connections[$this->valid_key]);
                     throw new \Exception(self::$connections[$this->valid_key]->getLastError());
                 }
                 $this->connect = true;
