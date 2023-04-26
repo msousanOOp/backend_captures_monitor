@@ -32,8 +32,7 @@ class Mysql extends \App\Connector
                 'port' => $port,
                 'driver' => 'pdo_mysql',
                 'driverOptions' => array(
-                    \PDO::ATTR_TIMEOUT => 5,
-                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+                    \PDO::ATTR_TIMEOUT => 5
                 )
             ];
             $this->connector = DriverManager::getConnection($connectionParams);
