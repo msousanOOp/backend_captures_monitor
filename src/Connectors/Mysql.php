@@ -83,7 +83,7 @@ class Mysql extends \App\Connector
             if ($this->limit > 0) {
                 $count = 0;
                 while ((($row = $result->fetchAssociative()) !== false) || $count >= $this->limit) {
-                    $data[] = $row['headline'];
+                    $data[] = $row;
                     $count++;
                 }
             } else {
