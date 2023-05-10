@@ -76,15 +76,16 @@ class Mysql extends \App\Connector
     {
         $this->startTime("task_" . $task['task_id']);
         try {
+
             $stm = $this->connector->prepare($task['command']);
             $result = $stm->executeQuery();
             $this->finishTime("task_" . $task['task_id']);
             $data = [];
             if ($this->limit > 0) {
-                $count = 0;
-                while ((($row = $result->fetchAssociative()) !== false) || $count >= $this->limit) {
+                for ($i = 0; $i < $this->limit; $i++) {
+                    if (!$row = $result->fetchAssociative())
+                        break;
                     $data[] = $row;
-                    $count++;
                 }
             } else {
                 $data = $result->fetchAllAssociative();
