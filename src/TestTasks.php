@@ -72,7 +72,7 @@ class TestTasks extends EventControl
                 }
                 $connector->clearContent();
             }
-
+            $connector = null;
             API::sendTestResults($result);
             unset($result);
         } catch (Exception $e) {
