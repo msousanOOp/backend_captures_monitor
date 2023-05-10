@@ -41,6 +41,7 @@ class TestTasks extends EventControl
             switch ($tasks['connection']) {
                 case 'mysql':
                     $connector = new Mysql((array)$tasks);
+                    $connector->setLimit(100);
                     break;
                 case 'postgresql':
                     $connector = new PostgreSql((array)$tasks);

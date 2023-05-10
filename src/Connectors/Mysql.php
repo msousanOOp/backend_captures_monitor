@@ -11,6 +11,7 @@ class Mysql extends \App\Connector
      * @var \Doctrine\DBAL\Connection
      */
     private $connector;
+    private $limit = 0;
 
     public function __construct($config = [])
     {
@@ -45,6 +46,16 @@ class Mysql extends \App\Connector
         return false;
     }
 
+    public function setLimit(int $limit)
+    {
+        $this->limit = $limit;
+    }
+
+    public function clearLimit()
+    {
+        $this->limit = 0;
+    }
+
     public function isConnected(): bool
     {
         if ($this->connector) {
@@ -65,11 +76,21 @@ class Mysql extends \App\Connector
     {
         $this->startTime("task_" . $task['task_id']);
         try {
-
             $stm = $this->connector->prepare($task['command']);
             $result = $stm->executeQuery();
             $this->finishTime("task_" . $task['task_id']);
-            $this->addCapture("task_" . $task['task_id'], $result->fetchAllAssociative());
+            $data = [];
+            if ($this->limit > 0) {
+                $count = 0;
+                while ((($row = $result->fetchAssociative()) !== false) || $count >= $this->limit) {
+                    $data[] = $row['headline'];
+                    $count++;
+                }
+            } else {
+                $data = $result->fetchAllAssociative();
+            }
+            $this->addCapture("task_" . $task['task_id'], $data);
+
             return true;
         } catch (\Exception $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
