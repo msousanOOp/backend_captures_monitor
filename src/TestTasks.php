@@ -67,14 +67,27 @@ class TestTasks extends EventControl
                     foreach ($tasks['tasks'] as $task) {
                         $connector->process(["task_id" => sha1($task), "command" => $task]);
                     }
-                    $result['result']['results'] = $connector->getContent();
+                    $result['result']['results'] = self::utf8ize($connector->getContent());
                 }
+                $connector->clearContent();
             }
+
             API::sendTestResults($result);
             unset($result);
         } catch (Exception $e) {
             var_dump($e->getMessage());
         }
+    }
+
+    private static function utf8ize( $mixed ) {
+        if (is_array($mixed)) {
+            foreach ($mixed as $key => $value) {
+                $mixed[$key] = self::utf8ize($value);
+            }
+        } elseif (is_string($mixed)) {
+            return mb_convert_encoding($mixed, "UTF-8", "UTF-8");
+        }
+        return $mixed;
     }
 
     public static function firstRun()
