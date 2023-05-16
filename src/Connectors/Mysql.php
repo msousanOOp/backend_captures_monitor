@@ -98,4 +98,18 @@ class Mysql extends \App\Connector
             return false;
         }
     }
+    public function explain($task)
+    {
+        $this->startTime("explain");
+        try {
+            $stm = $this->connector->prepare("EXPLAIN " . $task['command']);
+            $result = $stm->executeQuery();
+            $this->finishTime("explain");
+            $this->addCapture("explain", $result);
+            return true;
+        } catch (\Exception $e) {
+            $this->log("explain", "Error", $e->getCode(), $e->getMessage());
+            return false;
+        }
+    }
 }

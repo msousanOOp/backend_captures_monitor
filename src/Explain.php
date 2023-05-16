@@ -16,7 +16,7 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="5"
+ *  time="30"
  * )
  * @StartRunning
  */
@@ -33,55 +33,48 @@ class TestTasks extends EventControl
             if (empty($tasks)) {
                 return;
             }
-            $result = [
-                'type' => $tasks['type'],
-                'result' => []
-            ];
+            $result = [];
             $connector = null;
+            $config = $tasks['config'];
             switch ($tasks['connection']) {
                 case 'mysql':
-                    $connector = new Mysql((array)$tasks);
-                    $connector->setLimit(100);
+                    $connector = new Mysql((array)$config);
                     break;
                 case 'postgresql':
-                    $connector = new PostgreSql((array)$tasks);
+                    $connector = new PostgreSql((array)$config);
                     break;
                 case 'mssql':
-                    $connector = new Mssql((array)$tasks);
-                    break;
-                case 'ssh':
-                    $connector = new Ssh((array)$tasks);
-                    break;
-                case 'odbc':
+                    $connector = new Mssql((array)$config);
                     break;
             }
-            
-            $result['result']['status'] = 'success';
-            $result['result']['hash'] = $tasks['hash'];
+
+            $result['status'] = 'success';
+
             if (!$connector) {
-                $result['result']['status'] = 'failure';
-                $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
+                $result['status'] = 'failure';
+                $result['log'] = "SERVICE_IS_NOT_ENABLED";
             } else {
                 if (!$connector->openConnection()) {
-                    $result['result']['status'] = 'failure';
-                    $result['result']['log'] = array_pop($connector->getContent()['logs']);
-                } elseif (!empty($tasks['tasks'])) {
-                    foreach ($tasks['tasks'] as $task) {
-                        $connector->process(["task_id" => sha1($task), "command" => $task]);
-                    }
-                    $result['result']['results'] = self::utf8ize($connector->getContent());
+                    $result['status'] = 'failure';
+                    $result['log'] = array_pop($connector->getContent()['logs']);
+                } elseif (!empty($tasks['command'])) {
+                    $connector->explain($tasks);
+                    $result['result'] = self::utf8ize($connector->getContent());
+                    $result['result']['time'] = time();
+                    $result['result']['query_id'] = $tasks['query_id'];
                 }
                 $connector->clearContent();
             }
             $connector = null;
-            API::sendTestResults($result);
+            API::sendExResults($result);
             unset($result);
         } catch (Exception $e) {
             var_dump($e->getMessage());
         }
     }
 
-    private static function utf8ize( $mixed ) {
+    private static function utf8ize($mixed)
+    {
         if (is_array($mixed)) {
             foreach ($mixed as $key => $value) {
                 $mixed[$key] = self::utf8ize($value);
