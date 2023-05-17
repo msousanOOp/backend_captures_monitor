@@ -110,6 +110,14 @@ class API
         return (array) $tasks;
     }
 
+    public static function getExplain()
+    {
+        self::configureAPI();
+
+        $tasks = self::doRequest('POST', "worker/next_execution_plan");
+        return (array) $tasks;
+    }
+
     public static function sendResults($results)
     {
         self::configureAPI();
