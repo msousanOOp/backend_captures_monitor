@@ -16,7 +16,7 @@ use Sohris\Event\Event\EventControl;
 /**
  * @Time(
  *  type="Interval",
- *  time="30"
+ *  time="5"
  * )
  * @StartRunning
  */
