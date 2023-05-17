@@ -27,7 +27,7 @@ class Explain extends EventControl
     public static function run()
     {
         try {
-            if (!($tasks = API::getTests())) {
+            if (!($tasks = API::getExplain())) {
                 return;
             }
             if (empty($tasks)) {
