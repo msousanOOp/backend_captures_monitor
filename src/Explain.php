@@ -36,7 +36,7 @@ class Explain extends EventControl
             $result = [];
             $connector = null;
             $config = $tasks['config'];
-            switch ($tasks['connection']) {
+            switch ($tasks['connection_type']) {
                 case 'mysql':
                     $connector = new Mysql((array)$config);
                     break;

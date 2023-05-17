@@ -105,7 +105,7 @@ class Mysql extends \App\Connector
             $stm = $this->connector->prepare("EXPLAIN " . $task['command']);
             $result = $stm->executeQuery();
             $this->finishTime("explain");
-            $this->addCapture("explain", $result);
+            $this->addCapture("explain", $result->fetchAllAssociative());
             return true;
         } catch (\Exception $e) {
             $this->log("explain", "Error", $e->getCode(), $e->getMessage());
