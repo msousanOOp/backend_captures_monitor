@@ -62,6 +62,7 @@ class Explain extends EventControl
                     $result['result'] = self::utf8ize($connector->getContent());
                     $result['result']['time'] = time();
                     $result['result']['query_id'] = $tasks['query_id'];
+                    $result['result']['server_id'] = $tasks['server_id'];
                 }
                 $connector->clearContent();
             }
