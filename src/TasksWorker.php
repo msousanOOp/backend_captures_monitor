@@ -136,14 +136,8 @@ class TasksWorker
 
     public function run()
     {
+        $this->worker->stayAlive();
         $this->worker->run();
-        
-        $this->timer = Loop::addPeriodicTimer(function () {
-            if($this->worker->getStage() != 'running'){
-                $this->worker->restart();
-                self::$logger->critical("Restart worker!!!", $this->worker->getLastError());
-            }
-        },10);
     }
     public function stop()
     {
