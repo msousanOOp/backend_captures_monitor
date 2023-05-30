@@ -43,14 +43,13 @@ class SchedulerWorker
         $connections = $this->connections;
         foreach ($this->service_tasks as $task) {
             if (!is_array($task)) continue;
-
             switch ($task['timer_type']) {
                 case "CRON":
-                    self::$logger->info("Configuring Scheduler CRON Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
+                    self::$logger->info("Configuring Scheduler CRON Server " . $server . " -  ID#$task[task_id] - Frequency $task[timer_value]");
                     $this->worker->callCronFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value']);
                     break;
                 case "DATE":
-                    self::$logger->info("Configuring Scheduler Timer Server " . $server . " -  ID#$task[task_id] - Frequency $task[frequency]");
+                    self::$logger->info("Configuring Scheduler Timer Server " . $server . " -  ID#$task[task_id] - Frequency $task[timer_value]");
                     $this->worker->callTimeoutFunction(static fn () => self::runTask($server, $task, $connections), $task['timer_value'] - time());
                     break;
             }
@@ -135,12 +134,13 @@ class SchedulerWorker
     public function run()
     {
         $this->worker->stayAlive();
+        $this->worker->on('restart', function ($e) {
+            self::$logger->critical("Restart Scheduler", $e);
+        });
         $this->worker->run();
-       
     }
     public function stop()
     {
-        Loop::cancelTimer($this->timer);
         $this->worker->kill();
     }
 }

@@ -46,11 +46,14 @@ class TasksWorker
         $connections = $this->connections;
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
-                if(!is_array($task)) continue;
+                if (!is_array($task)) continue;
+                if (array_key_exists('last_run', $task)) {
+                    $timer = strtotime($task['last_run']);
+                    if (time() - $timer > $task['frequency'])
+                        $this->worker->callOnFirst(static fn () => self::runTask($server, $customer, $service, $task, $connections));
+                }
 
-                self::$logger->info("Configuring Server ".$server." - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
-                if (time() - $task['last_run'] > $task['frequency'])
-                    $this->worker->callOnFirst(static fn () => self::runTask($server, $customer, $service, $task, $connections));
+                self::$logger->info("Configuring Server " . $server . " - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 $this->worker->callFunction(static fn () => self::runTask($server, $customer, $service, $task, $connections), $task['frequency']);
             }
         }
@@ -141,7 +144,6 @@ class TasksWorker
     }
     public function stop()
     {
-        Loop::cancelTimer($this->timer);
         $this->worker->kill();
     }
 }

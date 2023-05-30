@@ -90,4 +90,19 @@ final class Utils
             return $obj;
         }
     }
+    
+    public static function trimQuery($query)
+    {
+        $query = preg_replace('/--(.+)/', ' ', $query);
+        $query = preg_replace('/(\/\*(.+)\*\/)/', ' ', $query);
+        $query = preg_replace('/, /', ',', $query);
+        $query = preg_replace('/([\n\t])/', ' ', $query);
+        $query = preg_replace('/(\s\s+)/', ' ', $query);
+        return $query;
+    }
+
+    public static function isSelect($query)
+    {
+        return preg_match('/^(SELECT\s+?[^\s]+?\s+?FROM.*)/', $query, $output_array) !== false;
+    }
 }

@@ -37,12 +37,11 @@ class SchedulerController extends EventControl
     private static function recreate()
     {
         try {
-
             $keys = array_keys(self::$timers);
 
             $delete = array_diff($keys, self::$hashes);
             $create = array_diff(self::$hashes, $keys);
-
+            
             if (!empty($delete)) {
                 foreach ($delete as  $hash) {
                     self::$logger->info("Delete $hash");
