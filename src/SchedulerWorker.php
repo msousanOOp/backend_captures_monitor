@@ -73,7 +73,8 @@ class SchedulerWorker
                 'type' => $task['type'],
                 'result' => []
             ];
-            if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;       
+            if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;   
+            $connector->process($task);   
             $pre_process_tasks = [
                 "captures" => [],
                 "timers" => [],
