@@ -37,31 +37,14 @@ class TestTasks extends EventControl
                 'type' => $tasks['type'],
                 'result' => []
             ];
-            $connector = null;
-            switch ($tasks['connection']) {
-                case 'mysql':
-                    $connector = new Mysql((array)$tasks);
-                    $connector->setLimit(100);
-                    break;
-                case 'postgresql':
-                    $connector = new PostgreSql((array)$tasks);
-                    break;
-                case 'mssql':
-                    $connector = new Mssql((array)$tasks);
-                    break;
-                case 'ssh':
-                    $connector = new Ssh((array)$tasks);
-                    break;
-                case 'odbc':
-                    break;
-            }
             
             $result['result']['status'] = 'success';
             $result['result']['hash'] = $tasks['hash'];
-            if (!$connector) {
+            if(!$connector = Factory::getConnector($tasks['connection'], (array) $tasks)){             
                 $result['result']['status'] = 'failure';
                 $result['result']['log'] = "SERVICE_IS_NOT_ENABLED";
             } else {
+                if($tasks['connection'] == 'mysql') $connector->setLimit(100);        
                 if (!$connector->openConnection()) {
                     $result['result']['status'] = 'failure';
                     $result['result']['log'] = array_pop($connector->getContent()['logs']);

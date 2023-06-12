@@ -73,46 +73,17 @@ class SchedulerWorker
                 'type' => $task['type'],
                 'result' => []
             ];
-            switch ($task['type']) {
-                case 'mysql':
-                    if (!array_key_exists('mysql', self::$connectors))
-                        self::$connectors['mysql'] = new Mysql((array)$config);
-                    if (!self::$connectors['mysql']->openConnection())
-                        break;
-                    self::$connectors['mysql']->process($task);
-                    break;
-                case 'mssql':
-                    if (!array_key_exists('mssql', self::$connectors))
-                        self::$connectors['mssql'] = new Mssql((array)$config);
-                    if (!self::$connectors['mssql']->openConnection())
-                        break;
-                    self::$connectors['mssql']->process($task);
-                    break;
-                case 'postgresql':
-                    if (!array_key_exists('postgresql', self::$connectors))
-                        self::$connectors['postgresql'] = new PostgreSql((array)$config);
-                    if (!self::$connectors['postgresql']->openConnection())
-                        break;
-                    self::$connectors['postgresql']->process($task);
-                    break;
-                case 'ssh':
-                    if (!array_key_exists('ssh', self::$connectors))
-                        self::$connectors['ssh'] = new Ssh((array)$config);
-                    if (!self::$connectors['ssh']->openConnection())
-                        break;
-                    self::$connectors['ssh']->process($task);
-                    break;
-            }
+            if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;       
             $pre_process_tasks = [
                 "captures" => [],
                 "timers" => [],
                 "logs" => []
             ];
-            $content = self::$connectors[$task['type']]->getContent();
+            $content = $connector->getContent();
             $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
             $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
             $pre_process_tasks['logs'] = array_merge($pre_process_tasks['logs'], $content['logs']);
-            self::$connectors[$task['type']]->clearContent();
+            $connector->clearContent();
 
             $result['result'] = [
                 "start" => $start,

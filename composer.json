@@ -8,7 +8,8 @@
         "firebase/php-jwt": "^6.3",
         "symfony/console": "^5.4",
         "phpseclib/phpseclib": "~3.0",
-        "doctrine/dbal": "3.6.1"
+        "doctrine/dbal": "3.6.1",
+        "stefanak-michal/bolt": "^5.1"
     },
     "authors": [
         {
