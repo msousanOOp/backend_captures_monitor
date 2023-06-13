@@ -19,7 +19,9 @@ class Neo4jAura extends \App\Connector
     }
     public function openConnection(): bool
     {
-        if ($this->connector) return true;
+        if ($this->connector && $this->isConnected()) {
+            return true;
+        }
 
         if (!$this->invalidate_op) {
             list("db_host_ip" => $host, "db_user" => $user, "db_password" => $pass) = $this->configs;
@@ -49,8 +51,10 @@ class Neo4jAura extends \App\Connector
 
     public function isConnected(): bool
     {
-        if ($this->connector)
+        if ($this->connector) {
+            $this->connector->reset();
             return true;
+        }
         return false;
     }
 
@@ -70,13 +74,12 @@ class Neo4jAura extends \App\Connector
             foreach ($this->connector->getResponses() as $response) {
                 if ($response->getSignature() == \Bolt\protocol\Response::SIGNATURE_RECORD) {
                     $content = $response->getContent();
-                    if($content instanceof \Bolt\protocol\v5\structures\Node)
-                     {
-                    //     foreach($content->properties() as $name => $value)
-                    //     {
-                    //         $tmp[$name] = $value;
-                    //     }                        
-                    }else{
+                    if ($content instanceof \Bolt\protocol\v5\structures\Node) {
+                        //     foreach($content->properties() as $name => $value)
+                        //     {
+                        //         $tmp[$name] = $value;
+                        //     }                        
+                    } else {
                         $result[] = $content;
                     }
                 }
