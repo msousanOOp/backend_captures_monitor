@@ -30,7 +30,7 @@ class Mssql extends \App\Connector
             try {
 
                 $connectionParams = [
-                    'dbname' => 'mssql',
+                    'dbname' => '',
                     'user' => $user,
                     'password' => $pass,
                     'host' => $host,

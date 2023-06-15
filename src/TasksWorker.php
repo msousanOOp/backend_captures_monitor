@@ -67,22 +67,22 @@ class TasksWorker
 
     public static function runTask($server, $customer, $service, $task, $configs)
     {
+        self::$logger->info("Running Task $task[task_id] $server - $service ");
+
+        $config = $configs[$task['type']];
+
+        $result = [
+            'type' => $task['type'],
+            'result' => []
+        ];
+        if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;       
+        $connector->process($task);
+        $pre_process_tasks = [
+            "captures" => [],
+            "timers" => [],
+            "logs" => []
+        ];
         try {
-            self::$logger->info("Running Task $task[task_id] $server - $service ");
-
-            $config = $configs[$task['type']];
-
-            $result = [
-                'type' => $task['type'],
-                'result' => []
-            ];
-            if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;       
-            $connector->process($task);
-            $pre_process_tasks = [
-                "captures" => [],
-                "timers" => [],
-                "logs" => []
-            ];
             $content = $connector->getContent();
             $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
             $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
@@ -105,6 +105,18 @@ class TasksWorker
         } catch (\Exception $e) {
             self::$logger->info("Error Task $task[task_id] $server - $service");
             self::$logger->critical("[Error][" . $e->getCode() . "] " . $e->getMessage());
+
+            $result['result'] = [
+                "timestamp" => time(),
+                "tasks_id" => [$task['task_id']],
+                "customer_id" => $customer,
+                "server_id" => $server,
+                "service" => $service,
+                "captures" => [],
+                "timers" => [],
+                "logs" => [["type" => "RUNNER", "level" => "CRITICAL", "code" => $e->getCode(), "message" => $e->getMessage()]],
+            ];
+            API::sendResults($result);
         }
     }
 
