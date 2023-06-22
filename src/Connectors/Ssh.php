@@ -24,7 +24,6 @@ class Ssh extends \App\Connector
     }
     public function openConnection(): bool
     {
-        if ($this->connect) return true;
         if (!$this->invalidate_op) {
             list("ssh_host_ip" => $host, "ssh_host_port" => $port, "ssh_user" => $user, "ssh_password" => $pass) = $this->configs;
             $this->startTime("connection_time_ssh");
@@ -34,13 +33,13 @@ class Ssh extends \App\Connector
                     self::$connections[$this->valid_key] = new SSH2($host, $port);
                     self::$keys[$this->valid_key] = PublicKeyLoader::load($pass);
                 }
-
                 // if(!self::$connections[$this->valid_key]->isConnected())
                 // {
                 //     self::$connections[$this->valid_key]->reconnect();
                 // }
 
                 if (!self::$connections[$this->valid_key]->ping() && !self::$connections[$this->valid_key]->login($user, self::$keys[$this->valid_key])) {
+                    echo "Cant_Connector" . PHP_EOL;
                     throw new \Exception(self::$connections[$this->valid_key]->getLastError());
                 }
                 $this->connect = true;

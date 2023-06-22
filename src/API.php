@@ -84,7 +84,6 @@ class API
                 return false;
             }
         } catch (ClientException $e) {
-            var_dump($e->getMessage());
             return false;
         } catch( Exception $e)
         {
@@ -105,7 +104,6 @@ class API
     public static function getTests()
     {
         self::configureAPI();
-
         $tasks = self::doRequest('POST', "worker/next_test");
         return (array) $tasks;
     }
