@@ -26,17 +26,17 @@ class TestTasks extends EventControl
 
     public static function run()
     {
+        if (!($tasks = API::getTests())) {
+            return;
+        }
+        if (empty($tasks)) {
+            return;
+        }
+        $result = [
+            'type' => $tasks['type'],
+            'result' => []
+        ];
         try {
-            if (!($tasks = API::getTests())) {
-                return;
-            }
-            if (empty($tasks)) {
-                return;
-            }
-            $result = [
-                'type' => $tasks['type'],
-                'result' => []
-            ];
             
             $result['result']['status'] = 'success';
             $result['result']['hash'] = $tasks['hash'];
@@ -57,11 +57,15 @@ class TestTasks extends EventControl
                 $connector->clearContent();
             }
             $connector = null;
-            API::sendTestResults($result);
-            unset($result);
-        } catch (Exception $e) {
+        } catch (Exception $e) {            
+                    
+            $result['result']['status'] = 'failure';
+            $result['result']['log'] = "INTERNAL_ERROR";
+
             var_dump($e->getMessage());
         }
+        API::sendTestResults($result);
+        unset($result);
     }
 
     private static function utf8ize( $mixed ) {

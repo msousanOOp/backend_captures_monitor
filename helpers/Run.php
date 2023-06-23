@@ -67,7 +67,7 @@ function register()
 
     if (empty($key)) {
         echo "The SNOOP_KEY is not defined! Please check this problem, and try again." . PHP_EOL;
-        exit(-1);
+        return false;
     }
 
     $uri = get_api_url();
@@ -113,14 +113,13 @@ function save_system_file(string $api, string $key, string $token)
 function main()
 {
 
-    if (!check_register()) {
-        register();
-        if (!check_register()) {
-            echo "Can't register this worker!" . PHP_EOL;
-            exit(-1);
-        }
-    }
+    check_register();
 
+    // register();
+    // if (!check_register()) {
+    //     echo "Can't register this worker!" . PHP_EOL;
+    //     exit(-1);
+    // }
 
     run();
 }

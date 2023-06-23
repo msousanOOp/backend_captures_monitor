@@ -37,14 +37,15 @@ class Mssql extends \App\Connector
                     'port' => $port,
                     'driver' => 'pdo_sqlsrv',
                     'driverOptions' => array(
-                        \PDO::ATTR_TIMEOUT => 5
+                        \PDO::ATTR_TIMEOUT => 5,
+                        "TrustServerCertificate" => true
                     )
                 ];
                 $this->connector = DriverManager::getConnection($connectionParams);
                 $this->finishTime("connection_time_mssql");
 
                 return true;
-            } catch (\PDOException $e) {
+            } catch (\Exception $e) {
                 $this->invalidate_op = true;
                 $this->log("Connection - Sql Server", "Error", $e->getCode(), $e->getMessage());
                 return false;
@@ -98,7 +99,7 @@ class Mssql extends \App\Connector
             }
             $this->addCapture("task_" . $task['task_id'], $data);
             return true;
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }
