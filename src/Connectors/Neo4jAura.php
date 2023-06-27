@@ -3,6 +3,7 @@
 namespace App\Connectors;
 
 use Bolt\protocol\V5;
+use Exception;
 use Sohris\Core\Utils;
 
 class Neo4jAura extends \App\Connector
@@ -52,7 +53,11 @@ class Neo4jAura extends \App\Connector
     public function isConnected(): bool
     {
         if ($this->connector) {
-            $this->connector->reset();
+            try {
+                $this->connector->reset();
+            } catch (Exception $e) {
+                return false;
+            }
             return true;
         }
         return false;
@@ -67,6 +72,7 @@ class Neo4jAura extends \App\Connector
 
     public function process($task)
     {
+        if (!$this->isConnected()) return false;
         $this->startTime("task_" . $task['task_id']);
         $result = [];
         try {

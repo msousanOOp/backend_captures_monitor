@@ -77,7 +77,7 @@ class SchedulerController extends EventControl
         try {
             $hashs = API::getValidateHashScheduler();
             if (empty($hashs)) {
-                self::$logger->info("No server configs");
+                self::$logger->info("No scheduler configs");
                 return;
             }
             
@@ -90,12 +90,4 @@ class SchedulerController extends EventControl
         return false;
     }
 
-    private static function logger()
-    {
-        foreach (self::$task_runned as $server => $tasks) {
-            foreach ($tasks as $id => $a) {
-                self::$logger->info("Server$server - Task$id => $a");
-            }
-        }
-    }
 }

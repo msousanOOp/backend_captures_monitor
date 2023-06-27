@@ -3,16 +3,9 @@
 namespace App;
 
 use App\API;
-use App\Connectors\Mssql;
-use App\Connectors\Mysql;
-use App\Connectors\PostgreSql;
-use App\Connectors\Ssh;
-use App\Utils;
 use Exception;
-use React\EventLoop\Loop;
 use Sohris\Core\Logger;
 use Sohris\Core\Server;
-use Sohris\Core\Tools\Worker\Worker;
 use Sohris\Core\Utils as CoreUtils;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Annotations\StartRunning;
@@ -34,18 +27,18 @@ class Controller extends EventControl
     private static $time_task = 0;
     private static $time_process = 0;
     private static $timers = [];
-    private static $connectors = [];
     private static $logger;
-    private static $task_runned = [];
     private static $hashes = [];
 
 
     public static function run()
     {
+        self::$logger->info("-------------------Running Controller-------------------");
         self::checkServers();
+        self::$logger->info("-------------------Running Recreate-------------------");
         self::recreate();
-
-        // self::logger();
+        self::$logger->info("-------------------Finish Recreate-------------------");
+        echo "End" . PHP_EOL;
     }
 
     private static function recreate()
@@ -100,12 +93,13 @@ class Controller extends EventControl
     private static function checkServers()
     {
         try {
+            self::$logger->info("Update Servers");
             $hashs = API::getValidateHash();
+            self::$logger->info("Servers Updates", $hashs);
             if (empty($hashs)) {
-                self::$logger->info("No server configs");
+                self::$logger->info("No server configs", $hashs);
                 return;
-            }
-            
+            }            
             self::$logger->info("Hashs", $hashs);
             self::$hashes = $hashs;
         } catch (Exception $e) {
@@ -115,12 +109,4 @@ class Controller extends EventControl
         return false;
     }
 
-    private static function logger()
-    {
-        foreach (self::$task_runned as $server => $tasks) {
-            foreach ($tasks as $id => $a) {
-                self::$logger->info("Server$server - Task$id => $a");
-            }
-        }
-    }
 }

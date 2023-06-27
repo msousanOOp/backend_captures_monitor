@@ -10,30 +10,39 @@ use App\Connectors\Ssh;
 
 class Factory
 {
+    private static $connectors = [];
 
     public static function getConnector(string $type, array $config)
     {
-        $connector = null;
+        $hash = sha1(json_encode($config));
         switch ($type) {
             case 'mysql':
-                    $connector = new Mysql((array)$config);
+                if (!array_key_exists('mysql', self::$connectors) || !array_key_exists($hash, self::$connectors['mysql']))
+                    self::$connectors['mysql'][$hash] = new Mysql((array)$config);
                 break;
             case 'mssql':
-                $connector =  new Mssql((array)$config);
+
+                if (!array_key_exists('mssql', self::$connectors) || !array_key_exists($hash, self::$connectors['mssql']))
+                    self::$connectors['mssql'][$hash] =  new Mssql((array)$config);
                 break;
             case 'postgresql':
-                $connector = new PostgreSql((array)$config);
+
+                if (!array_key_exists('postgresql', self::$connectors) || !array_key_exists($hash, self::$connectors['postgresql']))
+                    self::$connectors['postgresql'][$hash] = new PostgreSql((array)$config);
                 break;
             case 'neo4j_aura':
-                $connector =  new Neo4jAura((array)$config);
+
+                if (!array_key_exists('neo4j_aura', self::$connectors) || !array_key_exists($hash, self::$connectors['neo4j_aura']))
+                    self::$connectors['neo4j_aura'][$hash] =  new Neo4jAura((array)$config);
                 break;
             case 'ssh':
-                $connector =  new Ssh((array)$config);
+                if (!array_key_exists('ssh', self::$connectors) || !array_key_exists($hash, self::$connectors['ssh']))
+                    self::$connectors['ssh'][$hash] =  new Ssh((array)$config);
                 break;
             default:
                 return false;
         }
-        $connector->openConnection();
-        return $connector;
+        self::$connectors[$type][$hash]->openConnection();
+        return self::$connectors[$type][$hash];
     }
 }

@@ -31,6 +31,7 @@ class TasksWorker
         $this->hash = $hash;
 
         $config = Utils::objectToArray(API::getConfig($hash));
+        if(empty($config)) return ;
         $this->service_tasks = $config['tasks'];
         $this->server = $config['server_id'];
         $this->customer = $config['customer_id'];
@@ -44,6 +45,7 @@ class TasksWorker
         $server = $this->server;
         $customer = $this->customer;
         $connections = $this->connections;
+
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
                 if (!is_array($task)) continue;
@@ -55,10 +57,10 @@ class TasksWorker
 
                 self::$logger->info("Configuring Server " . $server . " - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
                 $this->worker->callFunction(static fn () => self::runTask($server, $customer, $service, $task, $connections), $task['frequency']);
+               
             }
         }
     }
-
 
     public static function firstRun()
     {
@@ -75,14 +77,14 @@ class TasksWorker
             'type' => $task['type'],
             'result' => []
         ];
-        if(!$connector = Factory::getConnector($task['type'], (array) $config)) return;       
-        $connector->process($task);
-        $pre_process_tasks = [
-            "captures" => [],
-            "timers" => [],
-            "logs" => []
-        ];
         try {
+            if (!$connector = Factory::getConnector($task['type'], (array) $config)) return;
+            $connector->process($task);
+            $pre_process_tasks = [
+                "captures" => [],
+                "timers" => [],
+                "logs" => []
+            ];
             $content = $connector->getContent();
             $pre_process_tasks['captures'] = array_merge($pre_process_tasks['captures'], $content['captures']);
             $pre_process_tasks['timers'] = array_merge($pre_process_tasks['timers'], $content['timers']);
