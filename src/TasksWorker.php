@@ -46,17 +46,18 @@ class TasksWorker
         $customer = $this->customer;
         $connections = $this->connections;
 
+        $id = sha1(time());
         foreach ($this->service_tasks as $service => $tasks) {
             foreach ($tasks as $task) {
                 if (!is_array($task)) continue;
                 if (array_key_exists('last_run', $task)) {
                     $timer = strtotime($task['last_run']);
                     if (time() - $timer > $task['frequency'])
-                        $this->worker->callOnFirst(static fn () => self::runTask($server, $customer, $service, $task, $connections));
+                        $this->worker->callOnFirst(static fn () => self::runTask($server, $customer, $service, $task, $connections, $id));
                 }
 
                 self::$logger->info("Configuring Server " . $server . " - Service $service - ID#$task[task_id] - Frequency $task[frequency]");
-                $this->worker->callFunction(static fn () => self::runTask($server, $customer, $service, $task, $connections), $task['frequency']);
+                $this->worker->callFunction(static fn () => self::runTask($server, $customer, $service, $task, $connections, $id), $task['frequency']);
                
             }
         }
@@ -67,10 +68,10 @@ class TasksWorker
         self::$logger = new Logger("Controller");
     }
 
-    public static function runTask($server, $customer, $service, $task, $configs)
+    public static function runTask($server, $customer, $service, $task, $configs, $id)
     {
         self::$logger->info("Running Task $task[task_id] $server - $service ");
-
+        //echo "Running $id" . PHP_EOL;
         $config = $configs[$task['type']];
 
         $result = [
@@ -124,11 +125,14 @@ class TasksWorker
 
     public function run()
     {
+        echo "Starting " . $this->server. PHP_EOL;
         $this->worker->stayAlive();
         $this->worker->run();
     }
     public function stop()
     {
-        $this->worker->kill();
+        $this->worker->stop();
+        echo "Stopping " . $this->server. PHP_EOL;
+        //$this->worker->kill();
     }
 }

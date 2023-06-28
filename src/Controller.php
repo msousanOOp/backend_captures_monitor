@@ -38,7 +38,6 @@ class Controller extends EventControl
         self::$logger->info("-------------------Running Recreate-------------------");
         self::recreate();
         self::$logger->info("-------------------Finish Recreate-------------------");
-        echo "End" . PHP_EOL;
     }
 
     private static function recreate()
@@ -95,7 +94,6 @@ class Controller extends EventControl
         try {
             self::$logger->info("Update Servers");
             $hashs = API::getValidateHash();
-            self::$logger->info("Servers Updates", $hashs);
             if (empty($hashs)) {
                 self::$logger->info("No server configs", $hashs);
                 return;
