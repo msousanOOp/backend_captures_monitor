@@ -1,0 +1,1 @@
+*/5 * * * * php /app/helpers/Resilience.php

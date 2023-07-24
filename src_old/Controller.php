@@ -18,7 +18,7 @@ use Sohris\Event\Event\EventControl;
  * )
  * @StartRunning
  */
-class Controller extends EventControl
+class Controller
 {
     private static $key;
     private static $total_tasks = 0;

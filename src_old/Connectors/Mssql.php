@@ -22,12 +22,12 @@ class Mssql extends \App\Connector
 
     public function openConnection(): bool
     {
-        if ($this->connector) return true;
+        try {
+            if ($this->connector && $this->connector->isConnected()) return true;
 
-        if (!$this->invalidate_op) {
-            list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
-            $this->startTime("connection_time_mssql");
-            try {
+            if (!$this->invalidate_op) {
+                list("db_host_ip" => $host, "db_host_port" => $port, "db_user" => $user, "db_password" => $pass) = $this->configs;
+                $this->startTime("connection_time_mssql");
 
                 $connectionParams = [
                     'dbname' => '',
@@ -43,13 +43,12 @@ class Mssql extends \App\Connector
                 ];
                 $this->connector = DriverManager::getConnection($connectionParams);
                 $this->finishTime("connection_time_mssql");
-
-                return true;
-            } catch (\Exception $e) {
-                $this->invalidate_op = true;
-                $this->log("Connection - Sql Server", "Error", $e->getCode(), $e->getMessage());
-                return false;
             }
+            return true;
+        } catch (\Exception $e) {
+            $this->invalidate_op = true;
+            $this->log("Connection - Sql Server", "Error", $e->getCode(), $e->getMessage());
+            return false;
         }
         return false;
     }
@@ -69,7 +68,6 @@ class Mssql extends \App\Connector
         if ($this->connector) {
             if ($this->connector->isConnected()) return true;
         }
-
         return false;
     }
 
@@ -100,6 +98,10 @@ class Mssql extends \App\Connector
             $this->addCapture("task_" . $task['task_id'], $data);
             return true;
         } catch (\Exception $e) {
+            if ($this->connector) {
+                $this->connector->close();
+                $this->connector = null;
+            }
             $this->log($task['task_id'], "Error", $e->getCode(), $e->getMessage());
             return false;
         }

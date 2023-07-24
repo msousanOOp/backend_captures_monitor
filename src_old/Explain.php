@@ -20,7 +20,7 @@ use Sohris\Event\Event\EventControl;
  * )
  * @StartRunning
  */
-class Explain extends EventControl
+class Explain
 {
     private static $key;
 

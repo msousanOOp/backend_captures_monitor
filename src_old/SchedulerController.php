@@ -18,7 +18,7 @@ use Sohris\Event\Event\EventControl;
  * )
  * @StartRunning
  */
-class SchedulerController extends EventControl
+class SchedulerController
 {
     private static $key;
     private static $timers = [];
