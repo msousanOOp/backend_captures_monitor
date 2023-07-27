@@ -47,6 +47,7 @@ class CreateWorker
                             Timer::create((array)$task_config),
                             $data->type
                         );
+                        $task->setLastRun($task_config['last_run']);
                         $worker->addTask($task);
                     }
                 }

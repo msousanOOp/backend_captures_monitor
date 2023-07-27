@@ -20,6 +20,7 @@ class Task
     private array $replacer_command = [];
     private string $rollback;
     private Timer $timer;
+    private int $last_run;
     private DateTime $last_running;
 
     /**
@@ -58,6 +59,15 @@ class Task
         $this->replacer_command = $replacer;
     }
 
+    public function setLastRun($last_run)
+    {
+        if(empty($last_run) && $this->timer->type() == Timer::INTERVAL)
+            $this->last_run = time() - (2*$this->timer->getTimer());
+        else
+            $this->last_run = strtotime($last_run);
+
+    }
+
     public function instance(): int
     {
         return $this->instance;
@@ -73,15 +83,17 @@ class Task
 
         return $command;
     }
+
     public function type(): string
     {
         return $this->type;
     }
 
-    public function service() : string
+    public function service(): string
     {
         return $this->service;
     }
+
     public function timer(): Timer
     {
         return $this->timer;
@@ -98,5 +110,14 @@ class Task
         $connector->setConfig($this->connector_config);
 
         return $connector;
+    }
+
+    public function needRunning(): bool
+    {
+        if ($this->timer->type() != Timer::INTERVAL) return false;
+
+        if (!isset($this->last_run)) return false;
+
+        return time() - $this->last_run > $this->timer->getTimer();
     }
 }

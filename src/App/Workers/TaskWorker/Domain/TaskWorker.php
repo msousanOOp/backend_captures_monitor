@@ -62,6 +62,10 @@ class TaskWorker
             $tasks[$service][] = ["task" => $task->id(), "frequency" => $task->timer()->getTimer()];
             $func = $task->timer()->getTimerFunction();
             $this->worker->{$func}(static fn () => self::runTask($task), $task->timer()->getTimer());
+
+            if($task->needRunning()){
+                $this->worker->callOnFirst(static fn () => self::runTask($task));
+            }
         }
         $id = $this->worker->getChannelName();
         $instance_id = $this->instance_id;
@@ -145,7 +149,6 @@ class TaskWorker
         try {
             //Process Task
             \Monitor\App\Log\Domain\Log::debug("[Instance" . $task->instance() . "][Task" . $task->id() . "] Running", strtoupper($task->service()));
-            if($id == 229 ) var_dump($task->command());
             $connector = $task->connector();
             $execute_command_dto = new ExecuteCommandDto($task->id(), $task->command());
             $execute_command = new ExecuteCommand($connector);
@@ -155,7 +158,6 @@ class TaskWorker
             $result->setType($task->type());
             //Send Result
             $api = new Api;
-            if($id == 229 ) var_dump($result->toArray());
             $send_result_dto = new SendTaskResultDto($result, $api);
             $send_result = new SendTaskResult(new Client);
             $send_result->execute($send_result_dto);

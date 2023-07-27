@@ -64,4 +64,9 @@ class Timer
                 return 0;
         }
     }
+
+    public function type()
+    {
+        return $this->type;
+    }
 }

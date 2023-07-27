@@ -96,8 +96,7 @@ class Client implements Repository
     {
         $result = $this->doRequest($api, 'POST', "v2/worker/command/next");
         if (empty($result)) throw new EmptyCommands;
-
-        return new Task(
+        $task = new Task(
             $result['id'],
             0,
             "",
@@ -107,6 +106,9 @@ class Client implements Repository
             new Timer(0, Timer::INSTANTE),
             "command"
         );
+        $task->setLastRun($result['last_run']);
+
+        return $task;
     }
 
     public function sendTaskResult(Api $api, TaskResult $result): void
