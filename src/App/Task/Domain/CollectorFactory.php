@@ -6,6 +6,7 @@ use Monitor\App\Task\Domain\Interfaces\ICollector;
 use Monitor\App\Task\Infrastructure\Mssql;
 use Monitor\App\Task\Infrastructure\Mysql;
 use Monitor\App\Task\Infrastructure\Neo4jAura;
+use Monitor\App\Task\Infrastructure\Oracle;
 use Monitor\App\Task\Infrastructure\Postgresql;
 use Monitor\App\Task\Infrastructure\Ssh;
 
@@ -24,6 +25,8 @@ class CollectorFactory
                 return new Postgresql;
             case "mssql":
                 return new Mssql;
+            case "oci":
+                return new Oracle;
         }
     }
 }

@@ -61,11 +61,10 @@ class Task
 
     public function setLastRun($last_run)
     {
-        if(empty($last_run) && $this->timer->type() == Timer::INTERVAL)
-            $this->last_run = time() - (2*$this->timer->getTimer());
+        if (empty($last_run) && $this->timer->type() == Timer::INTERVAL)
+            $this->last_run = time() - (2 * $this->timer->getTimer());
         else
             $this->last_run = strtotime($last_run);
-
     }
 
     public function instance(): int
@@ -78,7 +77,7 @@ class Task
         $command = $this->command;
         if (!empty($this->replacer_command)) {
             foreach ($this->replacer_command as $reference => $value)
-                $command = str_replace("[[$reference]]", $value, $command);
+                $command = str_replace("[[" . strtoupper($reference) . "]]", $value, $command);
         }
 
         return $command;

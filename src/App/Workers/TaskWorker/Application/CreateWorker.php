@@ -47,6 +47,8 @@ class CreateWorker
                             Timer::create((array)$task_config),
                             $data->type
                         );
+                        if (array_key_exists('task_params', $task_config))
+                            $task->setReplacer($task_config['task_params']);                        
                         $task->setLastRun($task_config['last_run']);
                         $worker->addTask($task);
                     }
@@ -66,6 +68,8 @@ class CreateWorker
                         Timer::create((array)$task_config),
                         $data->type
                     );
+                    if (array_key_exists('task_params', $task_config))
+                        $task->setReplacer($task_config['task_params']);
                     $worker->addTask($task);
                 }
         }

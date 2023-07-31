@@ -65,7 +65,7 @@ class Postgresql extends Collector
     }
 
     public function isConnected(): void
-    {
+    {        
         if (!$this->connection->isConnected()) {
             $this->invalidate();
             $this->connect();

@@ -13,7 +13,7 @@ use Monitor\App\Task\Domain\Exceptions\CantConnect;
 class Oracle extends Collector
 {
 
-    const CONNECTOR_NAME = "mysql";
+    const CONNECTOR_NAME = "oci";
 
     private string $host;
     private string $user;
@@ -43,14 +43,14 @@ class Oracle extends Collector
             return;
         }
 
+
         try {
             $connectionParams = [
-                'dbname' => 'mysql',
                 'user' => $this->user,
                 'password' => $this->password,
                 'host' => $this->host,
                 'port' => $this->port,
-                'driver' => 'pdo_mysql',
+                'driver' => 'oci8',
                 'driverOptions' => array(
                     \PDO::ATTR_TIMEOUT => 5
                 )
@@ -68,14 +68,13 @@ class Oracle extends Collector
     {
         if (!$this->connection->isConnected()) {
             $this->invalidate();
-            throw new CantConnect(self::CONNECTOR_NAME, 1000);
+            $this->connect();
         }
     }
 
     public function invalidate(): void
     {
         $this->deleteConnection();
-        $this->connection = null;
     }
 
     public function run(string $task_id, string $command): TaskResult
