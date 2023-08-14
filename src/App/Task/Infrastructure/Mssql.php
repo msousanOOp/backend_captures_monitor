@@ -30,7 +30,7 @@ class Mssql extends Collector
         $this->user = $user;
         $this->password = $pass;
 
-        $this->setHash(sha1(json_encode($config). self::CONNECTOR_NAME));
+        $this->setHash(sha1(json_encode($config) . self::CONNECTOR_NAME));
     }
 
     public function connect(): void
@@ -108,17 +108,17 @@ class Mssql extends Collector
             $this->log("ERROR", $e->getMessage());
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
-        }catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->log("ERROR", $e->getMessage());
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
-        
+
         $task_result->finish();
         return $task_result;
     }
 
-    public function explain(string $task_id,string $command): TaskResult
+    public function explain(string $task_id, string $command): TaskResult
     {
         $task_result = new TaskResult($task_id, self::CONNECTOR_NAME);
         try {
@@ -127,33 +127,14 @@ class Mssql extends Collector
             $this->connect();
             $task_result->finishTimer("connection_time_" . self::CONNECTOR_NAME);
             $task_result->startTimer("task_$task_id");
-            echo "123" . PHP_EOL;
-            echo "123" . PHP_EOL;
             $this->connection->beginTransaction();
             $this->connection->executeQuery("SET SHOWPLAN_TEXT ON");
             $result = $this->connection->fetchOne($command);
             $this->connection->executeQuery("SET SHOWPLAN_TEXT OFF");
             $this->connection->commit();
-            // $stm = $this->connection->prepare($command);
-            // $result = $stm->executeQuery();
-            var_dump($result);
-            echo "123" . PHP_EOL;
-            
-            //$stm = $this->connection->prepare($command);
-            //$result = $stm->executeQuery();
-            echo "123" . PHP_EOL;
             $task_result->finishTimer("task_$task_id");
             $data = [];
-            // if ($this->limit > 0) {
-            //     for ($i = 0; $i < $this->limit; $i++) {
-            //         if (!$row = $result->fetchAssociative())
-            //             break;
-            //         $data[] = $row;
-            //     }
-            // } else {
-                $data = $result;
-            // }
-            echo "123" . PHP_EOL;
+            $data = $result;
 
             $task_result->setResult($data);
             $task_result->setStatus("successfully");
@@ -162,12 +143,12 @@ class Mssql extends Collector
             $this->invalidate();
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
-        }   catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             echo $e->getMessage();
             $this->invalidate();
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
-        }        
+        }
         $task_result->finish();
         return $task_result;
     }

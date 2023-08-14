@@ -2,6 +2,7 @@
 
 namespace Monitor\App\Log\Application;
 
+use Monitor\App\Shared\Utils as SharedUtils;
 use Sohris\Core\Server;
 use Sohris\Core\Utils;
 
@@ -17,11 +18,10 @@ class DeleteWorkerStatistics
 
         $folders = scandir($path);
         $id = $dto->sub_worker_id;
-
         foreach ($folders as $folder) {
             if (in_array($folder, [".", ".."])) continue;
             if ($folder == $id)
-                rmdir("$path/$folder");
+                SharedUtils::rrmdir("$path/$folder");
         }
     }
 }

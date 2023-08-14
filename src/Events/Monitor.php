@@ -44,7 +44,6 @@ class Monitor extends EventControl
             $get_tasks_dto = new GetTasksDto(self::$api);
             $tasks = self::$get_tasks->execute($get_tasks_dto);
             $keys = array_keys(self::$workers);
-
             $delete = array_diff($keys, $tasks);
             $create = array_diff($tasks, $keys);
 

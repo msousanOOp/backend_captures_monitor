@@ -3,6 +3,7 @@
 namespace Monitor\App\Task\Domain;
 
 use Monitor\App\Task\Domain\Interfaces\ICollector;
+use Monitor\App\Task\Infrastructure\MongoDB;
 use Monitor\App\Task\Infrastructure\Mssql;
 use Monitor\App\Task\Infrastructure\Mysql;
 use Monitor\App\Task\Infrastructure\Neo4jAura;
@@ -27,6 +28,8 @@ class CollectorFactory
                 return new Mssql;
             case "oci":
                 return new Oracle;
+            case "mongodb":
+                return new MongoDB;
         }
     }
 }

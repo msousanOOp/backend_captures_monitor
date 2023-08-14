@@ -67,10 +67,10 @@ class TaskWorker
                 $this->worker->callOnFirst(static fn () => self::runTask($task));
             }
         }
-        $id = $this->worker->getChannelName();
+        $worker_id = $this->worker->getChannelName();
         $instance_id = $this->instance_id;
 
-        $this->worker->callOnFirst(static function () use ($id, $instance_id, $tasks) {
+        $this->worker->callOnFirst(static function () use ($worker_id, $instance_id, $tasks) {
             $tasks_id = [];
             foreach ($tasks as $service => $tasks_ids) {
                 foreach ($tasks_ids as $task_info) {
@@ -87,7 +87,7 @@ class TaskWorker
             }
 
             self::$create_in = time();
-            self::$sub_worker_id = $id;
+            self::$sub_worker_id = $worker_id;
             self::$instance_id = $instance_id;
             self::$task_registers = array_map(fn ($el) => $el['task'], $tasks);
         });

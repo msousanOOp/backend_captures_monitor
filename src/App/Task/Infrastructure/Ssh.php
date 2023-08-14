@@ -9,6 +9,7 @@ use Monitor\App\Task\Domain\Collector;
 use Monitor\App\Task\Domain\Exceptions\CantConnect;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Net\SSH2;
+use Throwable;
 
 class Ssh extends Collector
 {
@@ -47,6 +48,11 @@ class Ssh extends Collector
             $this->connection->login($this->user, $keys);
             $this->setConnection($this->connection);
         } catch (Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+            $this->invalidate();
+            throw new CantConnect(self::CONNECTOR_NAME, 1000);
+        } catch (Throwable $e) {
+            echo $e->getMessage() . PHP_EOL;
             $this->invalidate();
             throw new CantConnect(self::CONNECTOR_NAME, 1000);
         }
@@ -86,16 +92,16 @@ class Ssh extends Collector
             $task_result->setResult(Utils::convertTextArray($stm));
             $task_result->setStatus("successfully");
         } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
             $this->log("ERROR", $e->getMessage());
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         } catch (\Throwable $e) {
+            echo $e->getMessage() . PHP_EOL;
             $this->log("ERROR", $e->getMessage());
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
-
-
         $task_result->finish();
         return $task_result;
     }
