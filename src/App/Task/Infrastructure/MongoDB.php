@@ -166,11 +166,16 @@ class MongoDB extends Collector
         foreach ($configs as $name => $config) {
             $fields = explode(".", $config);
             $value = $result;
-            foreach ($fields as $field) {
+            foreach ($fields as $key => $field) {
                 if (empty($field) && $field !== "0") $value = $key;
                 if (is_numeric($field))
                     $value = $value[$field];
-                else $value = $value->{$field};
+                else {
+                    if ($key == count($fields) - 1 && !is_null($value) && get_class($value) == "MongoDB\BSON\UTCDateTime") {
+                        $value = $value->toDateTime()->format('U');
+                    } else
+                        $value = $value->{$field};
+                }
             }
             if (is_array($value))
                 $value = json_encode($value);
@@ -192,11 +197,16 @@ class MongoDB extends Collector
         $base_configs = explode(".", $base_configs);
 
         $base_result = $result;
-        foreach ($base_configs as $field) {
+        foreach ($base_configs as $key =>  $field) {
             if (empty($field) && $field !== "0") continue;
             if (is_numeric($field))
                 $base_result = $base_result[$field];
-            else $base_result = $base_result->{$field};
+            else {
+                if ($key == count($fields) - 1 && !is_null($base_configs) && get_class($base_result) == "MongoDB\BSON\UTCDateTime") {
+                    $base_result = $base_result->toDateTime()->format('U');
+                } else
+                    $base_result = $base_result->{$field};
+            }
         }
         if (is_array($base_result))
             foreach ($base_result as $n_result) {

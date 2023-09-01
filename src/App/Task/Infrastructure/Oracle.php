@@ -83,6 +83,7 @@ class Oracle extends Collector
         try {
 
             $task_result->startTimer("connection_time_" . self::CONNECTOR_NAME);
+           
             $this->connect();
             $task_result->finishTimer("connection_time_" . self::CONNECTOR_NAME);
 

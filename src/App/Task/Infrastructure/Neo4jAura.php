@@ -7,6 +7,7 @@ use Monitor\App\TaskResult\Domain\TaskResult;
 use Exception;
 use Monitor\App\Task\Domain\Collector;
 use Monitor\App\Task\Domain\Exceptions\CantConnect;
+use Throwable;
 
 class Neo4jAura extends Collector
 {
@@ -42,11 +43,8 @@ class Neo4jAura extends Collector
         }
 
         try {
-
-            $conn = new \Bolt\connection\StreamSocket($this->host);
-            $conn->setSslContextOptions([
-                'verify_peer' => true
-            ]);
+            $conn = new \Bolt\connection\StreamSocket($this->host, $this->port);
+            
             $bolt = new \Bolt\Bolt($conn);
             // Set requested protocol versions
             //$bolt->setProtocolVersions(5.1, 5, 4.4);
@@ -56,6 +54,11 @@ class Neo4jAura extends Collector
             $this->connection->hello(\Bolt\helpers\Auth::basic($this->user, $this->password));
             $this->setConnection($this->connection);
         } catch (Exception $e) {
+            var_dump($e->getMessage());
+            $this->invalidate();
+            throw new CantConnect(self::CONNECTOR_NAME, 1000);
+        } catch (Throwable $e) {
+            var_dump($e->getMessage());
             $this->invalidate();
             throw new CantConnect(self::CONNECTOR_NAME, 1000);
         }
@@ -68,15 +71,16 @@ class Neo4jAura extends Collector
             $this->connection->reset();
         } catch (Exception $e) {
             $this->invalidate();
-            throw new CantConnect(self::CONNECTOR_NAME, 1000);
+            $this->connect();
         }
     }
 
+   
     public function invalidate(): void
     {
         $this->deleteConnection();
-        $this->connection = null;
     }
+
 
     public function run(string $task_id, string $command): TaskResult
     {
@@ -88,8 +92,8 @@ class Neo4jAura extends Collector
             $task_result->finishTimer("connection_time_" . self::CONNECTOR_NAME);
 
             $task_result->startTimer("task_$task_id");
-
-            $this->connection->run($command)->pull();
+            $config = json_decode($command, true);
+            $this->connection->run($config['command'])->pull();
 
             $task_result->finishTimer("task_$task_id");
 
@@ -102,10 +106,11 @@ class Neo4jAura extends Collector
                         //         $tmp[$name] = $value;
                         //     }                        
                     } else {
-                        $result[] = $content;
+                        $result = $content;
+                        $result = $this->output($result,$config['output']);
                     }
                 } else if ($response->getSignature() == \Bolt\protocol\Response::SIGNATURE_FAILURE) {
-                    $content = $response->getContent();
+                    $content = $response->getContent();                    
                     throw new Exception($content['message']);
                 }
             }
@@ -115,9 +120,125 @@ class Neo4jAura extends Collector
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
-
-
         $task_result->finish();
         return $task_result;
+    }
+
+    private function output($result, $configs = [])
+    {
+        if (empty($configs)) return $result;
+        if (strpos(json_encode($configs), "[]") !== false) {
+            return $this->multiOutput($result, $configs);
+        }
+        if (strpos(json_encode($configs), "<?>") !== false) {
+            return $this->multiDynamicOutput($result, $configs);
+        } else {
+            return $this->simpleOutput($result, $configs);
+        }
+    }
+
+    private function outputFilter($result, $filters = [])
+    {
+        foreach ($filters as $key => $filter) {
+            foreach ($result as $val => $item) {
+                if (array_key_exists($key, $item) && in_array($item[$key], $filter))
+                    unset($result[$val]);
+            }
+        }
+        return $result;
+    }
+
+    private function simpleOutput($result, $configs, $key = "")
+    {
+        $items = [];
+        foreach ($configs as $name => $config) {
+            $fields = explode(".", $config);
+            $value = $result;
+            foreach ($fields as $key => $field) {
+                if (empty($field) && $field !== "0") $value = $key;
+                if (is_numeric($field))
+                    $value = $value[$field];
+                else {
+                    if ($key == count($fields) - 1 && !is_null($value) && get_class($value) == "MongoDB\BSON\UTCDateTime") {
+                        $value = $value->toDateTime()->format('U');
+                    } else
+                        $value = $value->{$field};
+                }
+            }
+            if (is_array($value))
+                $value = json_encode($value);
+            $items[$name] = $value;
+        }
+        return [$items];
+    }
+
+    private function multiOutput($result, $configs)
+    {
+        $final = [];
+        $config_fields = [];
+        $base_configs = "";
+        foreach ($configs as $name => $config) {
+            $fields = explode("[]", $config);
+            $base_configs = $fields[0];
+            $config_fields[$name] = $fields[1][0] == "." ? substr($fields[1], 1) : $fields[1];
+        }
+        $base_configs = explode(".", $base_configs);
+
+        $base_result = $result;
+        foreach ($base_configs as $key =>  $field) {
+            if (empty($field) && $field !== "0") continue;
+            if (is_numeric($field))
+                $base_result = $base_result[$field];
+            else {
+                if ($key == count($fields) - 1 && !is_null($base_configs) && get_class($base_result) == "MongoDB\BSON\UTCDateTime") {
+                    $base_result = $base_result->toDateTime()->format('U');
+                } else
+                    $base_result = $base_result->{$field};
+            }
+        }
+        if (is_array($base_result))
+            foreach ($base_result as $n_result) {
+                $final[] = $this->simpleOutput($n_result, $config_fields)[0];
+            }
+
+        return $final;
+    }
+
+    private function multiDynamicOutput($result, $configs)
+    {
+        $final = [];
+        $config_fields = [];
+        $base_configs = "";
+        foreach ($configs as $name => $config) {
+            $fields = explode("<?>", $config);
+            $base_configs = $fields[0];
+            $config_fields[$name] = $fields[1][0] == "." ? substr($fields[1], 1) : $fields[1];
+            if (empty($config_fields[$name])) $config_fields[$name] = "<?>";
+        }
+        $base_configs = explode(".", $base_configs);
+
+        $base_result = Utils::objectToArray($result);
+        foreach ($base_configs as $field) {
+            if (empty($field) && $field !== "0") continue;
+            $base_result = $base_result[$field];
+        }
+        if (is_array($base_result))
+            foreach ($base_result as $key => $n_result) {
+                $items = [];
+                foreach ($config_fields as $name => $config) {
+                    $fields = explode(".", $config);
+                    $value = $n_result;
+                    foreach ($fields as $field) {
+                        if ($field == "<?>")
+                            $value = $key;
+                        else
+                            $value = $value[$field];
+                    }
+                    $items[$name] = $value;
+                }
+                $final[] = $items;
+            }
+
+        return $final;
     }
 }
