@@ -19,6 +19,7 @@ class Oracle extends Collector
     private string $user;
     private string $password;
     private string $port;
+    private string $sid = "";
 
     private Connection $connection;
 
@@ -30,8 +31,11 @@ class Oracle extends Collector
         $this->port = $port;
         $this->user = $user;
         $this->password = $pass;
+        if (array_key_exists("db_sid", $config) && !empty($config['db_sid']))
+            $this->sid = $config['db_sid'];
 
-        $this->setHash(sha1(json_encode($config). self::CONNECTOR_NAME));
+
+        $this->setHash(sha1(json_encode($config) . self::CONNECTOR_NAME));
     }
 
     public function connect(): void
@@ -55,6 +59,8 @@ class Oracle extends Collector
                     \PDO::ATTR_TIMEOUT => 5
                 )
             ];
+            if (!empty($this->sid))
+                $connectionParams['servicename'] = $this->sid;
             $this->connection = DriverManager::getConnection($connectionParams);
             $this->setConnection($this->connection);
         } catch (Exception $e) {
@@ -83,7 +89,7 @@ class Oracle extends Collector
         try {
 
             $task_result->startTimer("connection_time_" . self::CONNECTOR_NAME);
-           
+
             $this->connect();
             $task_result->finishTimer("connection_time_" . self::CONNECTOR_NAME);
 
@@ -110,7 +116,7 @@ class Oracle extends Collector
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
 
-        
+
         $task_result->finish();
         return $task_result;
     }

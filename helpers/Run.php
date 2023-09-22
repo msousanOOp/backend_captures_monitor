@@ -108,6 +108,7 @@ function save_system_file(string $api, string $key, string $token)
     $file['key'] = $key;
     $file['api_url'] = $api;
     $file['jwt_token'] = $token;
+    $file['log_folder'] = realpath(__DIR__ . "/storage/log");
     file_put_contents($file_path . "/system.json", json_encode($file));
 }
 function main()

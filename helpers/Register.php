@@ -6,18 +6,23 @@ use GuzzleHttp\Client;
 use Sohris\Core\Utils;
 
 
-include __DIR__."/../bootstrap.php";
+include __DIR__ . "/../bootstrap.php";
 
 
-function get_input(string $entry = "", string $regex = "", string $tip = "")
+function get_input(string $entry = "", string $regex = "", string $tip = "", string $env = "")
 {
     $valid = false;
+    if (!empty($env))
+        $input = getenv($env);
     do {
-        $input = readline($entry);
+        if (empty($input))
+            $input = readline($entry);
         if (empty($regex) || preg_match($regex, $input))
             $valid = true;
-        else
+        else {
+            $input = "";
             echo "Invalid Input! " . (!empty($tip) ? "($tip)" : "") . PHP_EOL;
+        }
     } while (!$valid);
 
     return $input;
@@ -26,11 +31,14 @@ function get_input(string $entry = "", string $regex = "", string $tip = "")
 function get_api_url()
 {
     $valid = false;
+    $input = getenv("SNOOP_API");
     do {
-        $input = readline("URL: ");
-        if (!filter_var($input, FILTER_VALIDATE_URL))
+        if (empty($input))
+            $input = readline("URL: ");
+        if (!filter_var($input, FILTER_VALIDATE_URL)) {
             echo "Invalid URL format" . PHP_EOL;
-        else $valid = true;
+            $input = false;
+        } else $valid = true;
     } while (!$valid);
 
     $input = parse_url($input);
@@ -60,9 +68,10 @@ function get_token(string $api, string $key)
     $client = new Client([
         "base_uri" => $api
     ]);
+    $hostname = gethostname();
 
     $response = $client->request('POST', '/worker/register', [
-        "body" => json_encode(['key' => $key]),
+        "body" => json_encode(['key' => $key, 'hostname' => $hostname]),
         "headers" => array(
             "Content-Type" => "application/json"
         )
@@ -74,7 +83,7 @@ function get_token(string $api, string $key)
     }
 
     $data = json_decode($response->getBody()->getContents(), true);
-    echo "\r[OK] Colletor is register" . PHP_EOL;
+    echo "\r[OK] Colletor is register ($hostname)" . PHP_EOL;
     return $data['data'];
 }
 
@@ -85,6 +94,7 @@ function save_system_file(string $api, string $key, string $token)
     $file['key'] = $key;
     $file['api_url'] = $api;
     $file['jwt_token'] = $token;
+    $file['log_folder'] = realpath(__DIR__ . "/storage/log");
     file_put_contents($file_path, json_encode($file));
 }
 
@@ -110,7 +120,7 @@ function save_database_info()
     $count = 0;
     if (!empty($info['data'])) {
         $decoder = JWT::decode($info['data'], new Key($file['key'], "HS256"));
-        Utils::checkFolder(__DIR__ . "/../storage/cache/" , "create");
+        Utils::checkFolder(__DIR__ . "/../storage/cache/", "create");
         foreach ($decoder as $key => $server) {
             $code_key =  sha1($key);
             $encode = JWT::encode((array)$server, $file['key'], "HS256");
@@ -130,7 +140,6 @@ function main()
     $token = get_token($api, $key);
     save_system_file($api, $key, $token);
     save_database_info();
-
 }
 
 

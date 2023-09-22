@@ -54,7 +54,6 @@ class Command extends EventControl
             $result->setInstance($task->instance());
             $result->setService($task->service());
             $result->setType($task->type());
-
             //Send Result
             $send_result_dto = new SendTaskResultDto($result, self::$api);
             $send_result = new SendTaskResult(new Client);

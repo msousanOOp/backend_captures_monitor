@@ -56,7 +56,7 @@ function main($argv)
             echo "Getting Task&Instance Config" . PHP_EOL;
             $dto = new GetTaskConfigDto($api, $instance, $service, $task);
             $config = $get_config->execute($dto);
-
+            var_dump($config);
             if (empty($config)) {
                 throw new Exception("Invalid Server! Empty Configuration");
             }
