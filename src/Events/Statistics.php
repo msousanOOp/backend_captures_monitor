@@ -16,6 +16,7 @@ use Sohris\Event\Annotations\StartRunning;
 use Sohris\Event\Event\EventControl;
 use Monitor\App\Log\Application\SendLog;
 use Monitor\App\Log\Application\SendLogDto;
+use Sohris\Core\Server;
 use Throwable;
 
 /**
@@ -122,7 +123,8 @@ class Statistics extends EventControl
         self::$send_log = new SendLog(new Client, new Api); 
         $dto = new SendLogDto(random_int(10000, 99999), "INFO", ['message' => "Starting Worker"]);
         self::$send_log->execute($dto);
-
-        file_put_contents("/app/pid", getmygid());
+        $root_path = Server::getRootDir();
+        $path = $root_path . "/pid";
+        file_put_contents($path, getmygid());
     }
 }

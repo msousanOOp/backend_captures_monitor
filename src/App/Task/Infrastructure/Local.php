@@ -40,6 +40,8 @@ class Local extends Collector
             $task_result->startTimer("task_$task_id");
             $stm = "";
             exec($command, $stm);
+            if(is_array($stm))
+                $stm = implode("\n", $stm);
             $task_result->finishTimer("task_$task_id");
             $task_result->setResult(Utils::convertTextArray($stm));
             $task_result->setStatus("successfully");
