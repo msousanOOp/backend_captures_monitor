@@ -98,38 +98,6 @@ function save_system_file(string $api, string $key, string $token)
     file_put_contents($file_path, json_encode($file));
 }
 
-function save_database_info()
-{
-
-    echo "Updating Servers...";
-    $file_path = __DIR__ . "/../config/system.json";
-    $file = json_decode(file_get_contents($file_path), true);
-
-    $client = new Client([
-        "base_uri" => $file['api_url']
-    ]);
-
-    $response = $client->request('POST', '/worker/get_servers_config', [
-        "headers" => array(
-            "Content-Type" => "application/JSON",
-            "Authorization" => "Bearer " . $file['jwt_token'],
-        )
-    ]);
-
-    $info = json_decode($response->getBody()->getContents(), true);
-    $count = 0;
-    if (!empty($info['data'])) {
-        $decoder = JWT::decode($info['data'], new Key($file['key'], "HS256"));
-        Utils::checkFolder(__DIR__ . "/../storage/cache/", "create");
-        foreach ($decoder as $key => $server) {
-            $code_key =  sha1($key);
-            $encode = JWT::encode((array)$server, $file['key'], "HS256");
-            file_put_contents(__DIR__ . "/../storage/cache/" . $code_key, $encode);
-            $count++;
-        }
-    }
-    echo "\r[OK] Updated Servers (" . $count . ")" . PHP_EOL;
-}
 
 function main()
 {
@@ -139,7 +107,6 @@ function main()
     $key = get_input("Key: ", "/[a-zA-Z0-9]{40}/");
     $token = get_token($api, $key);
     save_system_file($api, $key, $token);
-    save_database_info();
 }
 
 

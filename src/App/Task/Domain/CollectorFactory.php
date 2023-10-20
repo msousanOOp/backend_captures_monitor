@@ -3,6 +3,7 @@
 namespace Monitor\App\Task\Domain;
 
 use Monitor\App\Task\Domain\Interfaces\ICollector;
+use Monitor\App\Task\Infrastructure\DB2;
 use Monitor\App\Task\Infrastructure\File;
 use Monitor\App\Task\Infrastructure\Local;
 use Monitor\App\Task\Infrastructure\MongoDB;
@@ -36,6 +37,8 @@ class CollectorFactory
                 return new File;
             case "local":
                 return new Local;
+            case "db2":
+                return new DB2;
         }
     }
 }
