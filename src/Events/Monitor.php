@@ -10,6 +10,7 @@ use Monitor\App\API\Domain\Api;
 use Monitor\App\API\Infrastructure\Client;
 use Monitor\App\Log\Application\SaveEventStatistics;
 use Monitor\App\Log\Application\SaveEventStatisticsDto;
+use Monitor\App\Shared\TasksServerHash;
 use Monitor\App\Workers\TaskWorker\Application\CreateWorker;
 use Sohris\Event\Annotations\Time;
 use Sohris\Event\Annotations\StartRunning;
@@ -26,6 +27,7 @@ use Throwable;
 class Monitor extends EventControl
 {
 
+    const LIMIT = 40;
     private static $workers = [];
     private static $workers_stage = [];
     private static $workers_last_errors = [];
@@ -36,12 +38,17 @@ class Monitor extends EventControl
     private static SaveEventStatistics $save_stats;
     private static int $start;
     private static array $last_error = [];
+    private static int $count = 0;
+    
 
     public static function run()
     {
+        self::$count++;
         try {
             \Monitor\App\Log\Domain\Log::debug("Updating Tasks", "MONITOR");
             $get_tasks_dto = new GetTasksDto(self::$api);
+
+
             $tasks = self::$get_tasks->execute($get_tasks_dto);
             $keys = array_keys(self::$workers);
             $delete = array_diff($keys, $tasks);
@@ -66,12 +73,23 @@ class Monitor extends EventControl
                 }
             }
 
-            foreach(self::$workers as $hash => $worker)
+            if(self::$count == self::LIMIT)
             {
+                echo "Restarting Workers" . PHP_EOL;
+            }
+            
+            foreach (self::$workers as $hash => $worker) {
                 self::$workers_stage[$hash] = $worker->stage();
                 self::$workers_last_errors[$hash] = $worker->workerLastError();
+                if (self::$count == self::LIMIT) {
+                    self::$workers[$hash]->stop();
+                    unset(self::$workers[$hash]);
+                    $create_worker_dto = new CreateWorkerDto(new TasksServerHash($hash), "monitor");
+                    self::$workers[$hash] = self::$create_worker->execute($create_worker_dto);
+                    self::$workers[$hash]->run();
+                }
             }
-
+            if(self::$count == self::LIMIT ) self::$count = 0;
         } catch (Exception $e) {
             \Monitor\App\Log\Domain\Log::debug($e->getMessage(), "MONITOR");
             self::$last_error = [

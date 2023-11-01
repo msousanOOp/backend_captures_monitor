@@ -18,6 +18,7 @@ use Monitor\App\Log\Application\SendLogDto;
 use Monitor\App\Task\Application\ExecuteCommand;
 use Monitor\App\Task\Application\ExecuteCommandDto;
 use Monitor\App\Task\Domain\Task;
+use React\EventLoop\Loop;
 use Sohris\Core\Tools\Worker\Worker;
 use Throwable;
 
@@ -27,7 +28,7 @@ class TaskWorker
     /**
      * @var Task[]
      */
-    private array $tasks;
+    private array $tasks = [];
 
     private Worker $worker;
 
@@ -39,6 +40,7 @@ class TaskWorker
     private static int $memory_usage = 0;
     private static array $tasks_runners = [];
     private static array $worker_last_error = [];
+    private static array $timers = [];
 
 
     public function __construct(int $instance_id = 0)
@@ -55,20 +57,20 @@ class TaskWorker
     public function run(): void
     {
         $tasks = [];
+        $worker_id = $this->worker->getChannelName();
+        $instance_id = $this->instance_id;
         foreach ($this->tasks as $task) {
             $service = $task->service();
             if (!array_key_exists($service, $tasks))
                 $tasks[$service] = [];
             $tasks[$service][] = ["task" => $task->id(), "frequency" => $task->timer()->getTimer()];
             $func = $task->timer()->getTimerFunction();
-            $this->worker->{$func}(static fn () => self::runTask($task), $task->timer()->getTimer());
+            $this->worker->{$func}(static fn () => self::runTask($task,$worker_id), $task->timer()->getTimer());
 
-            if($task->needRunning()){
-                $this->worker->callOnFirst(static fn () => self::runTask($task));
+            if ($task->needRunning()) {
+                $this->worker->callOnFirst(static fn () => self::runTask($task,$worker_id));
             }
         }
-        $worker_id = $this->worker->getChannelName();
-        $instance_id = $this->instance_id;
 
         $this->worker->callOnFirst(static function () use ($worker_id, $instance_id, $tasks) {
             $tasks_id = [];
@@ -123,14 +125,15 @@ class TaskWorker
 
     public function stop(): void
     {
-        $this->worker->stop();
-        $dto = new DeleteWorkerStatisticsDto($this->worker->getChannelName());
-        $delete_stats = new DeleteWorkerStatistics;
-        $delete_stats->execute($dto);
+            $this->worker->kill();
+            $dto = new DeleteWorkerStatisticsDto($this->worker->getChannelName());
+            $delete_stats = new DeleteWorkerStatistics;
+            $delete_stats->execute($dto);
+       
     }
 
 
-    public static function runTask(Task $task)
+    public static function runTask(Task $task, $worker_id)
     {
         $service = $task->service();
         $id = $task->id();
@@ -148,7 +151,7 @@ class TaskWorker
 
         try {
             //Process Task
-            \Monitor\App\Log\Domain\Log::debug("[Instance" . $task->instance() . "][Task" . $task->id() . "] Running", strtoupper($task->service()));
+            \Monitor\App\Log\Domain\Log::debug("[ID" . $worker_id . "][Instance" . $task->instance() . "][Task" . $task->id() . "] Running", strtoupper($task->service()));
             $connector = $task->connector();
             $execute_command_dto = new ExecuteCommandDto($task->id(), $task->command());
             $execute_command = new ExecuteCommand($connector);

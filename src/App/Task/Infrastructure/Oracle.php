@@ -115,8 +115,6 @@ class Oracle extends Collector
             $task_result->setStatus("failed");
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
-
-
         $task_result->finish();
         return $task_result;
     }

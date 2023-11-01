@@ -25,7 +25,7 @@ abstract class Collector implements ICollector
 
     private static function create()
     {
-        if (!self::$connections)
+        if (!self::$connections || !isset(self::$connections))
             self::$connections = new Connections;
     }
 

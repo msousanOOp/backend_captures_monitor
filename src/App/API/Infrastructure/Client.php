@@ -17,10 +17,54 @@ use Monitor\App\Task\Domain\Task;
 use Monitor\App\TaskResult\Domain\TaskResult;
 
 class Client implements Repository
-{
+{  
+    public static function utf8_encode_rec($value)
+    {
+        if (!is_array($value) && ($value == "" || $value == null || (!$value && $value !== "0"))) {
+            return " ";
+        }
+
+        $newarray = array();
+
+        if (is_array($value)) {
+            foreach ($value as $key => $data) {
+                $newarray[self::utf8_validate($key)] = self::utf8_encode_rec($data);
+            }
+        } else {
+            return self::utf8_validate($value);
+        }
+
+        return $newarray;
+    }
+    
+    public static function utf8_validate($string, $reverse = 0)
+    {
+        if ($reverse == 0) {
+
+            if (preg_match('!!u', $string)) {
+                return $string;
+            } else {
+                return utf8_encode($string);
+            }
+        }
+
+        // Decoding
+        if ($reverse == 1) {
+
+            if (preg_match('!!u', $string)) {
+                return utf8_decode($string);
+            } else {
+                return $string;
+            }
+        }
+
+        return false;
+    }
+
     private function doRequest(Api $api, string $method, string $uri, array $body = [])
     {
         try {
+            $body = self::utf8_encode_rec($body);
             if (!empty($body))
                 $body = ['data' => JWT::encode($body, $api->key(), "HS256")];
             $opt = array(
@@ -72,6 +116,7 @@ class Client implements Repository
         } catch (ClientException $e) {
             return false;
         } catch (Exception $e) {
+            echo $e->getFile() . " - " . $e->getLine() . PHP_EOL;
             echo "[ERROR] Curl Error (" . $e->getMessage() . ")" . PHP_EOL;
             // exit(-1);
             return false;
