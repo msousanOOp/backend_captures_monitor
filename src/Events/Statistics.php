@@ -70,11 +70,12 @@ class Statistics extends EventControl
                 $events[] = self::$get_event_stats->execute($dto);
             }
             $statitics = [
-                "events" => $events,
+                "events" => $events,                
                 "workers" => $worker_data,
                 "creating" => self::$start,
                 "last_run" => time(),
                 "uptime" => time() - self::$start,
+                "pid" => getmygid(),
                 "tasks_per_seconds" => ($tasks_count > 0 && (time() - self::$start) > 0) ? round($tasks_count / (time() - self::$start), 1) : 0,
                 "task_count" => $tasks_count,
                 "task_count_per_service" => $tasks_services_count
@@ -84,22 +85,22 @@ class Statistics extends EventControl
 
             self::$send_statistics->execute($stats);
 
-            // if ($do_restart) {
-            //     \Monitor\App\Log\Domain\Log::debug("Killing by task", "STATISTICS");
-            //     exec('kill ' . getmygid());
-            // }
+            if ($do_restart) {
+                \Monitor\App\Log\Domain\Log::debug("Killing by task", "STATISTICS");
+                exec('kill ' . getmygid());
+            }
 
-            // foreach ($events as $event) {
-            //     if (empty($event)) continue;
-            //     if (time() - $event['last_run'] > 300) {
-            //         $dto = new SendLogDto(random_int(10000, 99999), "INFO", ["message" => "Killing Monitor"]);
-            //         self::$send_log->execute($dto);
+            foreach ($events as $event) {
+                if (empty($event)) continue;
+                if (time() - $event['last_run'] > 300) {
+                    $dto = new SendLogDto(random_int(10000, 99999), "INFO", ["message" => "Killing Monitor"]);
+                    self::$send_log->execute($dto);
 
-            //         \Monitor\App\Log\Domain\Log::debug("Killing", "STATISTICS");
+                    \Monitor\App\Log\Domain\Log::debug("Killing", "STATISTICS");
 
-            //         exec('kill ' . getmygid());
-            //     }
-            // }
+                    exec('kill ' . getmygid());
+                }
+            }
 
             \Monitor\App\Log\Domain\Log::debug("FINISH", "STATISTICS");
         } catch (Exception $e) {
