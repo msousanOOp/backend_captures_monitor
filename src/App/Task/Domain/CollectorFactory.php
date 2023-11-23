@@ -3,6 +3,7 @@
 namespace Monitor\App\Task\Domain;
 
 use Monitor\App\Task\Domain\Interfaces\ICollector;
+use Monitor\App\Task\Infrastructure\Curl;
 use Monitor\App\Task\Infrastructure\DB2;
 use Monitor\App\Task\Infrastructure\File;
 use Monitor\App\Task\Infrastructure\Local;
@@ -39,6 +40,8 @@ class CollectorFactory
                 return new Local;
             case "db2":
                 return new DB2;
+            case "curl":
+                return new Curl;
         }
     }
 }

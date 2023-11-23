@@ -92,22 +92,25 @@ class Curl extends Collector
             $headers = json_encode($result->getHeaders());
             $body = $result->getBody()->getContents();
             $stm = [];
-            if (empty($command['result']) || !is_array($command['result'])) {
+            if (empty($command['output']) || !is_array($command['output'])) {
                 $stm = [
                     "req_status" => $status,
                     "req_headers" => $headers,
                     "req_body" => $body
                 ];
             } else {
-                foreach ($command['result'] as $header => $regex) {
+                foreach ($command['output'] as $header => $regex) {
                     if ($header == "req_status") {
                         $stm['req_status'] = $status;
+                        continue;
                     }
                     if ($header == "req_body") {
                         $stm['req_body'] = $body;
+                        continue;
                     }
                     if ($header == "req_headers") {
                         $stm['req_headers'] = $headers;
+                        continue;
                     }
                     $stm[$header] = [];
                     preg_match_all($regex, $body, $output);
@@ -118,7 +121,7 @@ class Curl extends Collector
                 }
             }
             $task_result->finishTimer("task_$task_id");
-            $task_result->setResult($stm);
+            $task_result->setResult([$stm]);
             $task_result->setStatus("successfully");
         } catch (\Exception $e) {
             echo $e->getMessage() . PHP_EOL;
