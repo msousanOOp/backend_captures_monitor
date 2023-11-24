@@ -5,6 +5,7 @@ use Monitor\App\API\Application\GetTaskConfigDto;
 use Monitor\App\API\Domain\Api;
 use Monitor\App\API\Infrastructure\Client;
 use Monitor\App\Task\Domain\Collector;
+use Monitor\App\Task\Domain\CollectorFactory;
 use Monitor\App\Task\Infrastructure\Mssql;
 use Monitor\App\Task\Infrastructure\Mysql;
 use Monitor\App\Task\Infrastructure\Neo4jAura;
@@ -61,7 +62,7 @@ function main($argv)
                 throw new Exception("Invalid Server! Empty Configuration");
             }
             echo "Instance Collector" . PHP_EOL;
-            $connector = get_connector($config['type']);
+            $connector = CollectorFactory::get($config['type']);
         }
 
         if (!$connector) {
