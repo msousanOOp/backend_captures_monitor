@@ -77,8 +77,12 @@ class Client implements Repository
             $client = new GuzzleHttpClient([
                 "base_uri" => $api->url(),
             ]);
-
-            $response = $client->request($method, $uri, $opt);
+            
+            try {
+                $response = $client->request($method, $uri, $opt);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $response = $e->getResponse();
+            }
 
             $code = $response->getStatusCode();
             switch ($code) {

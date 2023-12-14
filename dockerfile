@@ -11,6 +11,8 @@ COPY ./composer.json /app/
 COPY ./composer.lock /app/
 COPY ./bin/dbsnoop /bin
 COPY ./helpers/root /var/spool/cron/crontabs
+COPY ./bin/php.ini /usr/local/etc/php/
+
 
 WORKDIR /app
 

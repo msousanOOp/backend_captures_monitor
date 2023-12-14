@@ -87,7 +87,11 @@ class Curl extends Collector
                 $params['timeout'] = 5;
             }
 
-            $result = $this->connection->request($command['method'], $command["path"], $params);
+            try {
+                $result = $this->connection->request($command['method'], $command["path"], $params);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $result = $e->getResponse();
+            }
             $status = $result->getStatusCode();
             $headers = json_encode($result->getHeaders());
             $body = $result->getBody()->getContents();
