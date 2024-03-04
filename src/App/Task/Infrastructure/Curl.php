@@ -89,7 +89,7 @@ class Curl extends Collector
 
             try {
                 $result = $this->connection->request($command['method'], $command["path"], $params);
-            } catch (\GuzzleHttp\Exception\ClientException $e) {
+            } catch (\GuzzleHttp\Exception\BadResponseException $e) {
                 $result = $e->getResponse();
             }
             $status = $result->getStatusCode();

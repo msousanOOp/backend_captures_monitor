@@ -16,12 +16,6 @@ interface Repository
      */
     public function getServerHashs(Api $api): array;
 
-    /** 
-     * Get Hashes from servers to do tasks
-     * @return TasksServerHash[]
-     */
-    public function getServerHashsScheduler(Api $api): array;
-
     public function getCommands(Api $api): Task;
 
     public function getTaskConfig(Api $api, int $instance, string $service, int $task): array;

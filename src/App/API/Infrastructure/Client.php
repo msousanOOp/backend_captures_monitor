@@ -134,13 +134,6 @@ class Client implements Repository
         return array_map(fn ($el) => new TasksServerHash($el), $result);
     }
 
-    public function getServerHashsScheduler(Api $api): array
-    {
-        $result = $this->doRequest($api, 'POST', "v2/worker/scheduler/get_hash");
-        if (empty($result)) return [];
-        return array_map(fn ($el) => new TasksServerHash($el), $result);
-    }
-
     public function getCommands(Api $api): Task
     {
         $result = $this->doRequest($api, 'POST', "v2/worker/command/next");
@@ -171,6 +164,7 @@ class Client implements Repository
     public function sendStatistics(Api $api, array $stats): void
     {
         $stats['client_version'] = $api->version();
+        $stats['host_uri'] = $api->url();
         $this->doRequest($api, 'POST', "v2/worker/control/save_stats", $stats);
     }
 

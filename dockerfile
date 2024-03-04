@@ -1,6 +1,6 @@
 FROM dbsnoop/php:latest
 
-RUN apt install vim cron -y
+RUN apt update && apt install vim cron -y
 
 COPY ./src /app/src
 COPY ./helpers /app/helpers
@@ -11,7 +11,6 @@ COPY ./composer.json /app/
 COPY ./composer.lock /app/
 COPY ./bin/dbsnoop /bin
 COPY ./helpers/root /var/spool/cron/crontabs
-COPY ./bin/php.ini /usr/local/etc/php/
 
 
 WORKDIR /app

@@ -1,7 +1,7 @@
 {
     "name": "dbsnoop/monitor",
     "type": "project",
-    "version": "v2.1.0",
+    "version": "v2.2.2",
     "require": {
         "sohris/events": "^0.3",
         "guzzlehttp/guzzle": "^7.5",
@@ -24,7 +24,6 @@
     "autoload": {
         "psr-4": {
             "Monitor\\": "src/",
-            "App\\": "src_old/",
             "Helpers\\" : "helpers/"
         }
     }

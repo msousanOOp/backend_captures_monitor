@@ -44,7 +44,6 @@ class Postgresql extends Collector
             return;
         }
         try {
-            echo "Creating Connection" . PHP_EOL;
             $connectionParams = [
                 'user' => $this->user,
                 'password' => $this->password,
