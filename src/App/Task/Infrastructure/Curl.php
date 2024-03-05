@@ -21,7 +21,7 @@ class Curl extends Collector
 
     public function setConfig(array $config): void
     {
-
+        
         list("host" => $host, "port" => $port) = $config;
 
         $this->host = $host;
@@ -39,7 +39,7 @@ class Curl extends Collector
         try {
 
             $uri = $this->host . (!empty($this->port) ? ":" . $this->port : "");
-
+          
             $client = new Client([
                 "base_uri" => "http://$uri/",
                 "headers" => [
@@ -68,7 +68,9 @@ class Curl extends Collector
 
     public function run(string $task_id, string $command): TaskResult
     {
+       
         $task_result = new TaskResult($task_id, self::CONNECTOR_NAME);
+    
         try {
             $task_result->startTimer("connection_time_" . self::CONNECTOR_NAME);
             $this->connect();
@@ -88,22 +90,30 @@ class Curl extends Collector
             }
 
             try {
+            
                 $result = $this->connection->request($command['method'], $command["path"], $params);
+              
+               
             } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+              
                 $result = $e->getResponse();
             }
             $status = $result->getStatusCode();
             $headers = json_encode($result->getHeaders());
             $body = $result->getBody()->getContents();
+            
             $stm = [];
             if (empty($command['output']) || !is_array($command['output'])) {
+             
                 $stm = [
                     "req_status" => $status,
                     "req_headers" => $headers,
                     "req_body" => $body
                 ];
             } else {
+               
                 foreach ($command['output'] as $header => $regex) {
+                   var_dump($regex);
                     if ($header == "req_status") {
                         $stm['req_status'] = $status;
                         continue;
@@ -116,8 +126,9 @@ class Curl extends Collector
                         $stm['req_headers'] = $headers;
                         continue;
                     }
-                    $stm[$header] = [];
+                    $stm[$header] = '';
                     preg_match_all($regex, $body, $output);
+                  
                     if (!empty($output) && !empty($output[1])) {
 
                         $stm[$header] = array_pop($output[1]);
@@ -139,6 +150,7 @@ class Curl extends Collector
             $task_result->log($task_id, "Error", $e->getCode(), $e->getMessage());
         }
         $task_result->finish();
+      
         return $task_result;
     }
 }
